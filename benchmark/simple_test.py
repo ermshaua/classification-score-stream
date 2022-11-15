@@ -7,6 +7,7 @@ np.random.seed(1379)
 import matplotlib.pyplot as plt
 
 from src.clazz.segmentation import ClaSPSegmetationStream
+from src.competitor.FLOSS import FLOSS
 from src.utils import load_dataset
 from benchmark.metrics import covering
 from src.visualizer import plot_clasp_with_ts
@@ -22,18 +23,22 @@ if __name__ == '__main__':
     name, w, cps, ts = df.iloc[0, :].tolist()
 
     css = ClaSPSegmetationStream(n_timepoints=min(ts.shape[0], 10_000), verbose=ts.shape[0]) #
+    # css = FLOSS(n_timepoints=min(ts.shape[0], 10_000), window_size=w, threshold=.2, verbose=ts.shape[0])
     # csv = ClaSPSegmetationStreamViewer(name, css, frame_rate=w)
 
-    hist = []
+    global_profile = np.full(shape=ts.shape[0], fill_value=-np.inf, dtype=np.float64)
 
     for dx, timepoint in enumerate(ts):
         profile = css.update(timepoint)
-        if profile[0] != -np.inf:
-            hist.append(profile[0])
 
-    profile, window_size, found_cps, scores = css.get_profile(), css.window_size, np.array(css.global_change_points), np.array(css.scores)
+        global_profile[max(0, dx-profile.shape[0]):dx] = np.max([
+            global_profile[max(0, dx-profile.shape[0]):dx],
+            profile[max(0, profile.shape[0]-dx):]
+        ], axis=0)
 
-    profile = np.concatenate((hist, profile))
+    profile, window_size, found_cps, scores = css.profile, css.window_size, np.array(css.global_change_points), np.array(css.scores)
+
+    profile = global_profile 
 
     if profile.shape[0] < ts.shape[0]:
         profile = np.hstack((np.full(shape=ts.shape[0]-profile.shape[0], fill_value=np.min(profile), dtype=np.float64), profile))
