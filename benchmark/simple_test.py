@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from src.clazz.segmentation import ClaSPSegmetationStream
 from src.competitor.FLOSS import FLOSS
+from src.competitor.Window import Window
 from src.utils import load_dataset
 from benchmark.metrics import covering
 from src.visualizer import plot_clasp_with_ts
@@ -22,8 +23,9 @@ if __name__ == '__main__':
     df = load_dataset("TSSB", [selection]) #
     name, w, cps, ts = df.iloc[0, :].tolist()
 
-    css = ClaSPSegmetationStream(n_timepoints=min(ts.shape[0], 10_000), verbose=ts.shape[0]) #
+    # css = ClaSPSegmetationStream(n_timepoints=min(ts.shape[0], 10_000), verbose=ts.shape[0]) #
     # css = FLOSS(n_timepoints=min(ts.shape[0], 10_000), window_size=w, threshold=.2, verbose=ts.shape[0])
+    css = Window(n_timepoints=min(ts.shape[0], 1_000), cost_func="ar", threshold=.15, verbose=ts.shape[0])
     # csv = ClaSPSegmetationStreamViewer(name, css, frame_rate=w)
 
     global_profile = np.full(shape=ts.shape[0], fill_value=-np.inf, dtype=np.float64)
@@ -36,12 +38,15 @@ if __name__ == '__main__':
             profile[max(0, profile.shape[0]-dx):]
         ], axis=0)
 
-    profile, window_size, found_cps, scores = css.profile, css.window_size, np.array(css.global_change_points), np.array(css.scores)
+    profile, found_cps, scores = css.profile, np.array(css.change_points), np.array(css.scores)
 
-    profile = global_profile 
+    profile = global_profile
 
     if profile.shape[0] < ts.shape[0]:
         profile = np.hstack((np.full(shape=ts.shape[0]-profile.shape[0], fill_value=np.min(profile), dtype=np.float64), profile))
+
+    profile[np.isinf(profile)] = np.nan
+    profile = pd.Series(profile).interpolate(limit_direction="both").to_numpy()
 
     plot_clasp_with_ts(
         name,
@@ -54,4 +59,4 @@ if __name__ == '__main__':
     )
 
     covering_score = covering({0 : cps}, found_cps, ts.shape[0]) #
-    print(f"{name}: Window Size: {window_size} True Change Points: {cps}, Found Change Points: {found_cps}, Scores: {np.round(scores, 3)}, Covering-Score: {np.round(covering_score, 3)}")
+    print(f"{name}: True Change Points: {cps}, Found Change Points: {found_cps}, Scores: {np.round(scores, 3)}, Covering-Score: {np.round(covering_score, 3)}")
