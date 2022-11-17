@@ -6,7 +6,9 @@ from stumpy.floss import floss, _cac
 
 class FLOSS:
 
-    def __init__(self, n_timepoints, window_size, threshold, excl_factor=5, verbose=0):
+    def __init__(self, n_timepoints, window_size, threshold, n_prerun=None, excl_factor=5, verbose=0):
+        if n_prerun is None: n_prerun = n_timepoints
+
         self.n_timepoints = n_timepoints
         self.window_size = window_size
         self.threshold = threshold
@@ -27,7 +29,7 @@ class FLOSS:
         self.prerun_counter = 0
         self.ingested = 0
 
-        self.n_prerun = n_timepoints
+        self.n_prerun = n_prerun
         self.prerun_ts = np.full(shape=self.n_prerun, fill_value=np.inf, dtype=np.float64)
 
     def _prerun(self, timepoint):

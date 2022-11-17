@@ -3,25 +3,18 @@ import numpy as np
 from tqdm import tqdm
 from ruptures.costs import cost_factory
 
-import ruptures as rpt
-
-
-def window(ts, window_size, cost_func="mahalanobis", n_cps=None, offset=0.05):
-    transformer = rpt.Window(width=max(window_size, 3), model=cost_func, min_size=int(ts.shape[0] * offset)).fit(ts)
-    return np.array(transformer.predict(n_bkps=n_cps)[:-1], dtype=np.int64)
-
 
 class Window:
 
-    def __init__(self, n_timepoints, cost_func, threshold, jump=5, excl_factor=.05, verbose=0):
+    def __init__(self, n_timepoints, window_size, cost_func, threshold, excl_factor=5, verbose=0):
+        self.window_size = window_size
         self.n_timepoints = n_timepoints
         self.cost_func = cost_factory(model=cost_func)
         self.threshold = threshold
-        self.jump = jump
         self.excl_factor = excl_factor
         self.verbose = verbose
 
-        self.profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
+        self.profile = np.full(shape=self.n_timepoints, fill_value=-np.inf, dtype=np.float64)
         self.change_points = []
         self.scores = []
 
@@ -68,40 +61,37 @@ class Window:
         self.sliding_window = np.roll(self.sliding_window, -1)
         self.sliding_window[-1] = timepoint
 
-        self.cost_func.fit(self.sliding_window)
-        self.profile = np.full(shape=self.n_timepoints, fill_value=-np.inf, dtype=np.float64)
+        self.profile = np.roll(self.profile, -1)
+        self.profile[-1] = -np.inf
 
-        start, end = 0, self.n_timepoints
+        self.cost_func.fit(self.sliding_window[self.n_timepoints-2*self.window_size:])
+
+        start, middle, end = 0, self.window_size, 2*self.window_size
         gain = self.cost_func.error(start, end)
+        idx = self.n_timepoints - self.window_size
 
-        excl_zone = int(self.excl_factor * self.n_timepoints)
+        # assert that the gain is not NaN
+        if gain == gain:
+            self.profile[idx] = gain - (self.cost_func.error(start, middle) + self.cost_func.error(middle, end))
 
-        for idx in np.arange(excl_zone, self.profile.shape[0] - excl_zone, step=self.jump):
-            if gain != gain:
-                self.profile[idx] = 0
-                continue
-            self.profile[idx] = gain - (self.cost_func.error(start, idx) + self.cost_func.error(idx, end))
-
-        cp = np.argmax(self.profile)
-
-        if self.profile[cp] < self.threshold:
+        if self.profile[idx] < self.threshold:
             return self.profile
 
-        global_pos = self.ingested - self.n_timepoints + cp
+        global_pos = self.ingested - self.window_size
 
         if len(self.change_points) == 0:
             self.change_points.append(global_pos)
-            self.scores.append(self.profile[cp])
+            self.scores.append(self.profile[idx])
             return self.profile
 
-        if np.abs(self.change_points[-1] - global_pos) > self.excl_factor * self.n_timepoints:
+        if np.abs(self.change_points[-1] - global_pos) > self.excl_factor * self.window_size:
             self.change_points.append(global_pos)
-            self.scores.append(self.profile[cp])
+            self.scores.append(self.profile[idx])
 
         return self.profile
 
     def update(self, timepoint):
-        if self.prerun_counter < self.n_timepoints-1:
+        if self.prerun_counter < 2*self.window_size-1:
             return self._prerun(timepoint)
 
         return self._run(timepoint)
