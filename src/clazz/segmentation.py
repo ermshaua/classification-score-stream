@@ -4,14 +4,14 @@ import numpy as np
 import pandas as pd
 import daproli as dp
 
-from src.clazz.clasp import clasp
+from src.clazz.profile import calc_class
 from src.clazz.knn import TimeSeriesStream
 from src.clazz.suss import suss
 from src.clazz.penalty import rank_sums_test
 
 from tqdm import tqdm
 
-class ClaSPSegmetationStream:
+class ClaSS:
 
     def __init__(self, n_timepoints=10_000, n_prerun=None, window_size=None, k_neighbours=3, jump=5, threshold=1e-50, similarity="pearson", profile_mode="global", verbose=0):
         if n_prerun is None: n_prerun = n_timepoints
@@ -36,7 +36,7 @@ class ClaSPSegmetationStream:
         self.prerun_ts = np.full(shape=self.n_prerun, fill_value=-np.inf, dtype=np.float64)
         self.profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
 
-        self.global_change_points = list()
+        self.change_points = list()
         self.local_change_points = list()
         self.scores = list()
         self.ps = list()
@@ -83,7 +83,7 @@ class ClaSPSegmetationStream:
 
         return self.profile
 
-    def run(self, timepoint): # todo: consider data point
+    def run(self, timepoint):
         # log p_bar if verbose > 0
         if self.p_bar is not None: self.p_bar.update(1)
 
@@ -110,10 +110,10 @@ class ClaSPSegmetationStream:
         profile_start, profile_end = self.ts_stream.lbound, self.ts_stream.knn_insert_idx
 
         if profile_end - profile_start < 2 * self.min_seg_size or self.ingested % self.jump != 0:
-            return self._run_return()
+            return self.profile
 
-        offset = self.min_seg_size # max(self.min_seg_size, int(.05 * (profile_end-profile_start)))
-        profile, knn = clasp(self.ts_stream, offset, return_knn=True)
+        offset = self.min_seg_size
+        profile, knn = calc_class(self.ts_stream, offset, return_knn=True)
 
         not_ninf = np.logical_not(profile == -np.inf)
 
@@ -123,12 +123,10 @@ class ClaSPSegmetationStream:
         cp, score = np.argmax(profile) + self.window_size, np.max(profile) #
 
         if cp < offset or profile.shape[0] - cp < offset:
-            return self._run_return()
+            return self.profile
 
         if profile[cp:-offset].shape[0] == 0:
-            return self._run_return()
-
-        # right_symp = cp + np.argmin(profile[cp:-offset]) + self.window_size
+            return self.profile
 
         if self.profile_mode == "global":
             self.profile[profile_start:profile_end] = np.max([profile, self.profile[profile_start:profile_end]], axis=0)
@@ -137,39 +135,14 @@ class ClaSPSegmetationStream:
 
         p, passed = rank_sums_test(knn, cp, self.window_size, sample_size=1_000, threshold=self.threshold) #
 
-        # _, right_passed = rank_sums_test(knn, right_symp, self.window_size, sample_size=1_000, threshold=self.threshold)
-
-        if passed: # and not right_passed
+        if passed:
             global_cp = self.ingested - self.ts_stream_lag - (profile_end - profile_start) + cp
-
-            if len(self.global_change_points) > 0:
-                last_global_cp, last_p, last_score = self.global_change_points[-1], self.ps[-1], self.scores[-1]
-
-                left_begin = max(0, last_global_cp - offset)
-                right_end = min(self.ingested, last_global_cp + offset)
-
-                if global_cp in range(left_begin, right_end) and p < last_p:
-                    self.global_change_points[-1] = global_cp
-                    self.local_change_points[-1] = cp
-                    self.scores[-1] = score
-                    self.ps[-1] = p
-
-            if self.lag == -1:
-                self.global_change_points.append(global_cp)
-                self.local_change_points.append(cp)
-                self.scores.append(score)
-                self.ps.append(p)
-                self.lag = 0 # 2*offset
-
-        if self.lag == 0:
+            self.change_points.append(global_cp)
+            self.local_change_points.append(cp)
+            self.scores.append(score)
+            self.ps.append(p)
             self.last_cp += self.local_change_points[-1]
-            self.lag = -1
 
-        return self._run_return()
-
-    def _run_return(self):
-        # decrease lag counter to reset last cp
-        if self.lag > 0: self.lag -= 1
         return self.profile
 
     def update(self, timepoint):
@@ -177,13 +150,5 @@ class ClaSPSegmetationStream:
             return self.prerun(timepoint)
 
         return self.run(timepoint)
-
-    def get_profile(self):
-        profile = np.array(self.profile, dtype=np.float64)
-
-        if self.ingested < self.n_timepoints:
-            profile = profile[-self.ingested:]
-
-        return pd.Series(profile).interpolate(limit_direction="both").to_numpy()
 
 

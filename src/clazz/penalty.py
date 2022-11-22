@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.stats import ranksums, distributions
 
-from src.clazz.clasp import _labels
+from src.clazz.profile import _labels
 
 
 def rank_binary_data(data):
@@ -22,8 +22,8 @@ def rank_binary_data(data):
 
 
 def rank_sums_test(knn, change_point, window_size, sample_size=None, threshold=.05, random_state=2357):
-    _, y_pred = _labels(knn, change_point, window_size)
-    x, y = y_pred[:change_point], y_pred[change_point:]
+    _, y_pred = _labels(knn, change_point)
+    x, y = y_pred[:change_point], y_pred[change_point+window_size:]
 
     if sample_size is not None:
         np.random.seed(random_state)

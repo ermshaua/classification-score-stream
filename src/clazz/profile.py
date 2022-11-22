@@ -2,14 +2,11 @@ import numba
 import numpy as np
 import pandas as pd
 
-from numba import njit, prange
-from numba import njit, prange, typeof
-from numba import types
-from numba.typed import Dict, List
+
+from numba import njit
 
 
-@njit(fastmath=True, cache=True)
-def _labels(knn, split_idx, window_size):
+def _labels(knn, split_idx):
     n_timepoints, k_neighbours = knn.shape
 
     y_true = np.concatenate((
@@ -27,10 +24,7 @@ def _labels(knn, split_idx, window_size):
     zeros = k_neighbours - ones
     y_pred = np.asarray(ones > zeros, dtype=np.int64)
 
-    valid = np.full(shape=y_true.shape, fill_value=True, dtype=np.bool8)
-    valid[split_idx:split_idx+window_size] = False
-
-    return y_true[valid], y_pred[valid]
+    return y_true, y_pred
 
 
 @njit(fastmath=True, cache=True)
@@ -206,26 +200,6 @@ def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred, 
 
 
 @njit(fastmath=True, cache=True)
-def _score(split_idx, window_size, y_true, y_pred, conf_matrix):
-    exclusion_zone = np.arange(split_idx - window_size, split_idx)
-    tmp = y_pred[exclusion_zone].copy()
-
-    # exclusion zone magic
-    for pos in exclusion_zone:
-        conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], 0, 1, conf_matrix) # y_true[pos]
-        y_pred[pos] = 1
-
-    score = _binary_f1_score(conf_matrix)
-
-    # exclusion zone magic
-    for kdx, pos in enumerate(exclusion_zone):
-        conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], tmp[kdx], conf_matrix)
-        y_pred[pos] = tmp[kdx]
-
-    return score
-
-
-@njit(fastmath=True, cache=True)
 def _fast_profile(knn, window_size, offset):
     n_timepoints = knn.shape[0]
     profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
@@ -245,7 +219,7 @@ def _fast_profile(knn, window_size, offset):
     return profile
 
 
-def clasp(ts_stream, offset, return_knn=False, interpolate=False):
+def calc_class(ts_stream, offset, return_knn=False, interpolate=False):
     knn = ts_stream.knns[ts_stream.lbound:ts_stream.knn_insert_idx] - ts_stream.lbound
     knn = np.clip(knn, 0, knn.shape[0] - 1)
 

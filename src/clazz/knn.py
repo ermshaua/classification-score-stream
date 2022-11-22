@@ -56,7 +56,7 @@ class TimeSeriesStream:
 
     def __init__(self, window_size, n_timepoints, k_neighbours=3, similarity="pearson"):
         self.window_size = window_size
-        self.exclusion_radius = int(window_size/2)
+        self.exclusion_radius = int(window_size/2) #
 
         self.n_timepoints = n_timepoints
         self.k_neighbours = k_neighbours
@@ -113,7 +113,7 @@ class TimeSeriesStream:
             self.dot_rolled[valid_dist] = _sliding_dot(self.time_series[idx:idx+self.window_size], self.time_series[-self.fill:])
         else:
             self.dot_rolled += self.time_series[idx + self.window_size - 1] * self.time_series[self.window_size - 1:]
-            self.dot_rolled[start_idx] = np.sum(self.time_series[start_idx:start_idx+self.window_size] * self.time_series[idx:idx+self.window_size])
+            self.dot_rolled[start_idx] = np.dot(self.time_series[start_idx:start_idx + self.window_size], self.time_series[idx:idx + self.window_size])
 
         rolled_dist = None
 
