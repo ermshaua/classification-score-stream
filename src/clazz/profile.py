@@ -80,14 +80,15 @@ def _init_labels(knn, offset):
 
 @njit(fastmath=True, cache=True)
 def _init_conf_matrix(y_true, y_pred):
-    conf_matrix = np.zeros(shape=(2,3), dtype=np.float64)
+    conf_matrix = np.zeros(shape=(2,4), dtype=np.float64)
 
     for label in (0,1):
         tp = np.sum(np.logical_and(y_true == label, y_pred == label))
         fp = np.sum(np.logical_and(y_true != label, y_pred == label))
         fn = np.sum(np.logical_and(y_true == label, y_pred != label))
+        tn = np.sum(np.logical_and(y_true != label, y_pred != label))
 
-        conf_matrix[label] = np.array([tp, fp, fn])
+        conf_matrix[label] = np.array([tp, fp, fn, tn])
 
     return conf_matrix
 
@@ -104,6 +105,9 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
         if old_true == label and old_pred != label:
             conf_matrix[label][2] -= 1
 
+        if old_true != label and old_pred != label:
+            conf_matrix[label][3] -= 1
+
         if new_true == label and new_pred == label:
             conf_matrix[label][0] += 1
 
@@ -113,15 +117,18 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
         if new_true == label and new_pred != label:
             conf_matrix[label][2] += 1
 
+        if new_true != label and new_pred != label:
+            conf_matrix[label][3] += 1
+
     return conf_matrix
 
 
 @njit(fastmath=True, cache=True)
-def _binary_f1_score(conf_matrix):
+def binary_f1_score(conf_matrix):
     f1_score = 0
 
     for label in (0,1):
-        tp, fp, fn = conf_matrix[label]
+        tp, fp, fn, _ = conf_matrix[label]
 
         if (tp + fp) == 0 or (tp + fn) == 0:
             return -np.inf
@@ -139,16 +146,16 @@ def _binary_f1_score(conf_matrix):
 
 
 @njit(fastmath=True, cache=True)
-def _binary_acc_score(conf_matrix):
+def binary_acc_score(conf_matrix):
     acc_score = 0
 
     for label in (0,1):
-        tp, fp, fn = conf_matrix[label]
+        tp, fp, fn, tn = conf_matrix[label]
 
-        if (tp + fp + fn) == 0:
+        if (tp + fp + fn + tn) == 0:
             return -np.inf
 
-        acc = tp / (tp + fp + fn)
+        acc = (tp + tn) / (tp + fp + fn + tn)
         acc_score += acc
 
     return acc_score / 2
@@ -200,7 +207,7 @@ def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred, 
 
 
 @njit(fastmath=True, cache=True)
-def _fast_profile(knn, window_size, offset):
+def _fast_profile(knn, window_size, score, offset):
     n_timepoints = knn.shape[0]
     profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
 
@@ -211,7 +218,7 @@ def _fast_profile(knn, window_size, offset):
     excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]], y_pred[excl_zone[0]:excl_zone[1]])
 
     for split_idx in range(offset, n_timepoints - offset):
-        profile[split_idx] = _binary_f1_score(conf_matrix-excl_conf_matrix) #
+        profile[split_idx] = score(conf_matrix-excl_conf_matrix) #
 
         y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred, conf_matrix, excl_conf_matrix)
         excl_zone += 1
@@ -219,11 +226,11 @@ def _fast_profile(knn, window_size, offset):
     return profile
 
 
-def calc_class(ts_stream, offset, return_knn=False, interpolate=False):
+def calc_class(ts_stream, score, offset, return_knn=False, interpolate=False):
     knn = ts_stream.knns[ts_stream.lbound:ts_stream.knn_insert_idx] - ts_stream.lbound
     knn = np.clip(knn, 0, knn.shape[0] - 1)
 
-    profile = _fast_profile(knn, ts_stream.window_size, offset)
+    profile = _fast_profile(knn, ts_stream.window_size, score, offset)
 
     if interpolate is True:
         profile[np.isinf(profile)] = np.nan

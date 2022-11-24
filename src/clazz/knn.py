@@ -47,6 +47,7 @@ def argkmin(dist, k, lbound):
         vals[idx] = min_val
 
         dist[min_arg] = np.inf
+        # dist[max(0, min_arg - excl_radius):min(min_arg + excl_radius, dist.shape[0]-1)] = np.inf
 
     dist[args] = vals
     return args
@@ -129,7 +130,7 @@ class TimeSeriesStream:
         # cid is squared
         if self.similarity == "cid":
             csumsq = self.csumsq[self.window_size:] - self.csumsq[:-self.window_size]
-            ed = -2 * self.dot_rolled + csumsq + csumsq[idx] #
+            ed = -2 * self.dot_rolled + csumsq + csumsq[idx] # dist is squared
             ce = self.dcsum[self.window_size:] - self.dcsum[:-self.window_size] + 1e-5 # add some noise to prevent zero divisons
 
             last_ce = np.repeat(ce[idx], ce.shape[0])
