@@ -94,11 +94,16 @@ class TimeSeriesStream:
         window_sum_sq = self.csumsq[idx + self.window_size] - self.csumsq[idx]
 
         movstd = window_sum_sq / self.window_size - (window_sum / self.window_size) ** 2
+
+        # should not happen, but just in case
+        if movstd < 0:
+            return 1
+
         movstd = np.sqrt(movstd)
 
         # avoid dividing by too small std, like 0
         if abs(movstd) < 1e-3:
-            movstd = 1
+            return 1
 
         return movstd
 

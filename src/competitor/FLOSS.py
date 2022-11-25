@@ -3,10 +3,11 @@ import numpy as np
 from tqdm import tqdm
 from stumpy import stump
 from stumpy.floss import floss, _cac
+from src.clazz.window_size import suss
 
 class FLOSS:
 
-    def __init__(self, n_timepoints, window_size, threshold, n_prerun=None, excl_factor=5, verbose=0):
+    def __init__(self, n_timepoints=10_000, window_size=suss, threshold=0.35, n_prerun=None, excl_factor=5, verbose=0):
         if n_prerun is None: n_prerun = n_timepoints
 
         self.n_timepoints = n_timepoints
@@ -15,7 +16,7 @@ class FLOSS:
         self.excl_factor = excl_factor
         self.verbose = verbose
 
-        self.profile = np.full(shape=n_timepoints-window_size+1, fill_value=np.inf, dtype=np.float64)
+        self.profile = np.full(shape=n_timepoints, fill_value=np.inf, dtype=np.float64)
         self.change_points = []
         self.scores = []
 
@@ -51,6 +52,10 @@ class FLOSS:
         if self.prerun_counter != self.n_prerun:
             return self.profile
 
+        # determine window size
+        if callable(self.window_size):
+            self.window_size = self.window_size(self.prerun_ts)
+
         mp = stump(self.prerun_ts, m=max(self.window_size, 3))
 
         self.stream = floss(
@@ -77,7 +82,7 @@ class FLOSS:
             cp = np.argmin(profile)
             self.change_points.append(cp)
             self.scores.append(profile[cp])
-            profile[cp - self.excl_factor * self.window_size:cp + self.excl_factor * self.window_size] = np.inf
+            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0], cp + self.excl_factor * self.window_size)] = np.inf
 
         return self.profile
 
@@ -106,7 +111,7 @@ class FLOSS:
             self.scores.append(self.profile[cp])
             return self.profile
 
-        if np.abs(self.change_points[-1] - global_pos) > self.excl_factor * self.window_size:
+        if all(np.abs(cp_ - global_pos) > self.excl_factor * self.window_size for cp_ in self.change_points):
             self.change_points.append(global_pos)
             self.scores.append(self.profile[cp])
 

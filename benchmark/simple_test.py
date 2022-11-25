@@ -30,12 +30,14 @@ if __name__ == '__main__':
 
     from src.clazz.profile import binary_acc_score
 
-    stream = ClaSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0]) #
-    # stream = FLOSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), window_size=w, threshold=.3, verbose=ts.shape[0])
-    # stream = Window(10_000, window_size=100, cost_func="ar", threshold=10, verbose=ts.shape[0])
+
+
+    # stream = ClaSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0]) #
+    # stream = FLOSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), threshold=.5, verbose=ts.shape[0])
+    stream = Window(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), cost_func="rank", threshold=.05, verbose=ts.shape[0])
     # stream = BOCD(n_timepoints=10_000, threshold=-50, verbose=ts.shape[0])
 
-    # stream = ClaSPSegmetationStreamViewer(name, css, frame_rate=w)
+    # stream = ClaSPSegmetationStreamViewer(name, stream, frame_rate=w)
 
     profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.max)
 

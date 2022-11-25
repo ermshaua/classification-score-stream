@@ -17,8 +17,13 @@ def load_dataset(dataset, selection=None):
     for idx, row in enumerate(desc_file):
         if selection is not None and idx not in selection: continue
         (ts_name, window_size), change_points = row[:2], row[2:]
+        path = ABS_PATH + f'/datasets/{dataset}/'
 
-        ts = np.loadtxt(fname=os.path.join(ABS_PATH + f'/datasets/{dataset}/', ts_name + '.txt'), dtype=np.float64)
+        if os.path.exists(path + ts_name + ".txt"):
+            ts = np.loadtxt(fname=path + ts_name + ".txt", dtype=np.float64)
+        else:
+            ts = np.load(file=path + "data.npz")[ts_name]
+
         df.append((ts_name, int(window_size), np.array([int(_) for _ in change_points]), ts))
 
     return pd.DataFrame.from_records(df, columns=["name", "window_size", "change_points", "time_series"])

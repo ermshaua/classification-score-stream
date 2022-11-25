@@ -56,7 +56,7 @@ class ClaSPSegmetationStreamViewer:
 
 
     def update_animation(self, ts):
-        found_cps = self.css.global_change_points
+        found_cps = self.css.change_points
         profile = self.css.profile
 
         ind, vals = [list() for _ in range(len(found_cps)+1)], [list() for _ in range(len(found_cps)+1)]
@@ -109,7 +109,7 @@ class ClaSPSegmetationStreamViewer:
             line.set_data([], [])
 
         # set found_cps data
-        for _ in self.css.global_change_points:
+        for _ in self.css.change_points:
             if len(self.cp_lines) == line_ptr:
                 line = self.ax1.axvline(lw=2)
                 line.set_data([], [])
@@ -147,3 +147,7 @@ class ClaSPSegmetationStreamViewer:
             plt.pause(1e-15)
 
         return res
+
+    @property
+    def change_points(self):
+        return self.css.change_points
