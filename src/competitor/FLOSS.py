@@ -7,7 +7,7 @@ from src.clazz.window_size import suss
 
 class FLOSS:
 
-    def __init__(self, n_timepoints=10_000, window_size=suss, threshold=0.35, n_prerun=None, excl_factor=5, verbose=0):
+    def __init__(self, n_timepoints=10_000, window_size=None, n_prerun=None, threshold=0.45, excl_factor=5, verbose=0):
         if n_prerun is None: n_prerun = n_timepoints
 
         self.n_timepoints = n_timepoints
@@ -52,10 +52,6 @@ class FLOSS:
         if self.prerun_counter != self.n_prerun:
             return self.profile
 
-        # determine window size
-        if callable(self.window_size):
-            self.window_size = self.window_size(self.prerun_ts)
-
         mp = stump(self.prerun_ts, m=max(self.window_size, 3))
 
         self.stream = floss(
@@ -99,21 +95,18 @@ class FLOSS:
         self.stream.update(timepoint)
         self.profile = self.stream.cac_1d_
 
-        cp = np.argmin(self.profile)
+        # extract CPs from the updated batch if present
+        profile = np.copy(self.profile)
 
-        if self.profile[cp] > self.threshold:
-            return self.profile
+        while profile.min() <= self.threshold:
+            cp = np.argmin(profile)
+            global_pos = self.ingested - self.n_prerun + cp
 
-        global_pos = self.ingested - self.n_prerun + cp
+            if all(np.abs(cp_ - global_pos) > self.excl_factor * self.window_size for cp_ in self.change_points):
+                self.change_points.append(global_pos)
+                self.scores.append(profile[cp])
 
-        if len(self.change_points) == 0:
-            self.change_points.append(global_pos)
-            self.scores.append(self.profile[cp])
-            return self.profile
-
-        if all(np.abs(cp_ - global_pos) > self.excl_factor * self.window_size for cp_ in self.change_points):
-            self.change_points.append(global_pos)
-            self.scores.append(self.profile[cp])
+            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0], cp + self.excl_factor * self.window_size)] = np.inf
 
         return self.profile
 

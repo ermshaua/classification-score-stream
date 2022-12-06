@@ -17,6 +17,7 @@ def load_dataset(dataset, selection=None):
     for idx, row in enumerate(desc_file):
         if selection is not None and idx not in selection: continue
         (ts_name, window_size), change_points = row[:2], row[2:]
+        if len(change_points) == 1 and change_points[0] == "\n": change_points = list()
         path = ABS_PATH + f'/datasets/{dataset}/'
 
         if os.path.exists(path + ts_name + ".txt"):
@@ -62,4 +63,6 @@ def load_train_dataset():
 
 def load_benchmark_dataset():
     df = pd.concat([load_dataset("UTSA"), load_dataset("TSSB")])
-    return df.sort_values(by="name")
+    df.sort_values(by="name", inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df

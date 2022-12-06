@@ -6,8 +6,8 @@ from bocd import BayesianOnlineChangePointDetection, ConstantHazard, StudentT
 
 class BOCD:
 
-    def __init__(self, n_timepoints, threshold, excl_factor=5, verbose=0):
-        self.n_timepoints = 2*n_timepoints
+    def __init__(self, n_timepoints=10_000, threshold=-150, excl_factor=5, verbose=0):
+        self.n_timepoints =  n_timepoints
         self.threshold = threshold
         self.excl_factor = excl_factor
         self.verbose = verbose
@@ -26,7 +26,6 @@ class BOCD:
         else:
             self.p_bar = None
 
-        self.prerun_counter = 0
         self.ingested = 0
 
         self.sliding_window = np.full(shape=self.n_timepoints, fill_value=np.inf, dtype=np.float64)

@@ -8,6 +8,7 @@ from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
 from src.clazz.segmentation import ClaSS
 from src.competitor.FLOSS import FLOSS
 from src.competitor.Window import Window
+from src.competitor.BOCD import BOCD
 from benchmark.metrics import f_measure, covering
 from tqdm import tqdm
 
@@ -75,10 +76,7 @@ def evaluate_floss(name, w, cps, ts, **seg_kwargs):
     else:
         n_prerun = min(10_000, ts.shape[0])
 
-    if "window_size" in seg_kwargs and seg_kwargs["window_size"] == "predefined":
-        seg_kwargs["window_size"] = w
-
-    stream = FLOSS(n_prerun=n_prerun, verbose=0, **seg_kwargs)
+    stream = FLOSS(window_size=w, n_prerun=n_prerun, verbose=0, **seg_kwargs)
     profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.min)
 
     f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
@@ -89,16 +87,19 @@ def evaluate_floss(name, w, cps, ts, **seg_kwargs):
 
 
 def evaluate_window(name, w, cps, ts, **seg_kwargs):
-    if "n_timepoints" in seg_kwargs:
-        n_prerun = min(seg_kwargs["n_prerun"], ts.shape[0])
-    else:
-        n_prerun = min(10_000, ts.shape[0])
-
-    if "window_size" in seg_kwargs and seg_kwargs["window_size"] == "predefined":
-        seg_kwargs["window_size"] = w
-
-    stream = Window(n_prerun=n_prerun, verbose=0, **seg_kwargs)
+    stream = Window(window_size=w, verbose=0, **seg_kwargs)
     profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.max)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_bocd(name, w, cps, ts, **seg_kwargs):
+    stream = BOCD(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.min)
 
     f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
     covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)

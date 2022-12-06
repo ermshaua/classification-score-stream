@@ -7,11 +7,9 @@ from src.clazz.window_size import suss
 
 class Window:
 
-    def __init__(self, n_timepoints=10_000, window_size=suss, cost_func=None, n_prerun=None, threshold=None, excl_factor=5, verbose=0):
-        if n_prerun is None: n_prerun = n_timepoints
-
+    def __init__(self, n_timepoints=10_000, window_size=None, cost_func="ar", threshold=0.2, excl_factor=5, verbose=0):
         self.n_timepoints = n_timepoints
-        self.window_size = window_size
+        self.window_size = excl_factor*window_size
         self.cost_func = cost_factory(model=cost_func)
         self.threshold = threshold
         self.excl_factor = excl_factor
@@ -28,33 +26,9 @@ class Window:
         else:
             self.p_bar = None
 
-        self.prerun_counter = 0
         self.ingested = 0
 
-        self.n_prerun = n_prerun
-        self.prerun_ts = np.full(shape=self.n_prerun, fill_value=-np.inf, dtype=np.float64)
-
         self.sliding_window = np.full(shape=self.n_timepoints, fill_value=-np.inf, dtype=np.float64)
-
-    def _prerun(self, timepoint):
-        # update prerun ts
-        self.prerun_counter += 1
-
-        self.prerun_ts = np.roll(self.prerun_ts, -1)
-        self.prerun_ts[-1] = timepoint
-
-        if self.prerun_counter != self.n_prerun:
-            return self.profile
-
-        # determine window size
-        if callable(self.window_size):
-            self.window_size = self.excl_factor * self.window_size(self.prerun_ts)
-
-        # update ts stream with prerun
-        for timepoint in self.prerun_ts:
-            self._run(timepoint)
-
-        return self.profile
 
     def _run(self, timepoint):
         # log p_bar if verbose > 0
@@ -105,7 +79,4 @@ class Window:
         return self.profile
 
     def update(self, timepoint):
-        if self.prerun_counter < self.n_prerun:
-            return self._prerun(timepoint)
-
         return self._run(timepoint)
