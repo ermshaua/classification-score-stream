@@ -51,6 +51,6 @@ if __name__ == '__main__':
     # evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
     # evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
     # evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)

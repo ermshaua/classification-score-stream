@@ -16,11 +16,11 @@ from matplotlib.animation import FuncAnimation
 from tqdm import tqdm
 
 
-def plot_clasp(ts_name, clasp, true_cps=None, found_cps=None, show=True, score="roc_auc_score", save_path=None, font_size=26):
+def plot_profile(ts_name, profile, true_cps=None, found_cps=None, show=True, score="roc_auc_score", save_path=None, font_size=26):
     plt.clf()
     fig, ax = plt.subplots(1, figsize=(20, 5))
 
-    ax.plot(np.arange(clasp.shape[0]), clasp, color='b')
+    ax.plot(np.arange(profile.shape[0]), profile, color='b')
 
     ax.set_title(ts_name, fontsize=font_size)
     ax.set_xlabel('split point  $s$', fontsize=font_size)
@@ -71,7 +71,7 @@ def plot_ts(ts_name, ts, true_cps=None, show=True, save_path=None, font_size=26)
         plt.savefig(save_path, bbox_inches="tight")
 
 
-def plot_clasp_with_ts(ts_name, ts, clasp, true_cps=None, found_cps=None, show=True, score="ClaSP score", save_path=None, font_size=26):
+def plot_profile_with_ts(ts_name, ts, profile, true_cps=None, found_cps=None, show=True, score="Score", save_path=None, font_size=26):
     plt.clf()
     fig, (ax1, ax2) = plt.subplots(2, sharex=True, gridspec_kw={'hspace': .05},  figsize=(20,10))
 
@@ -80,10 +80,10 @@ def plot_clasp_with_ts(ts_name, ts, clasp, true_cps=None, found_cps=None, show=T
         for idx in np.arange(0, len(segments)-1):
             ax1.plot(np.arange(segments[idx], segments[idx+1]), ts[segments[idx]:segments[idx+1]])
 
-        ax2.plot(np.arange(clasp.shape[0]), clasp, color='b')
+        ax2.plot(np.arange(profile.shape[0]), profile, color='b')
     else:
         ax1.plot(np.arange(ts.shape[0]), ts)
-        ax2.plot(np.arange(clasp.shape[0]), clasp)
+        ax2.plot(np.arange(profile.shape[0]), profile)
 
     ax1.set_title(ts_name, fontsize=font_size)
     ax2.set_xlabel('split point  $s$', fontsize=font_size)

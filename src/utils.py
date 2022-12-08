@@ -66,3 +66,24 @@ def load_benchmark_dataset():
     df.sort_values(by="name", inplace=True)
     df.reset_index(drop=True, inplace=True)
     return df
+
+def load_archives_dataset():
+    df = pd.concat([
+        load_dataset("PAMAP"),
+        load_dataset("mHealth"),
+        load_dataset("WESAD"),
+        load_dataset("MIT-BIH-VE"),
+        load_dataset("MIT-BIH-Arr"),
+    ])
+    df.sort_values(by="name", inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df
+
+def load_combined_dataset():
+    df = pd.concat([
+        load_benchmark_dataset(),
+        load_archives_dataset()
+    ])
+    df.sort_values(by="name", inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df
