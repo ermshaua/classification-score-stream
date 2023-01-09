@@ -123,7 +123,7 @@ def std(idx, csumsq, csum, window_size):
 @njit(fastmath=True, cache=True)
 def roll_numba(arr, num, fill_value=0):
     result = np.empty_like(arr)
-    result[num:] = fill_value
+    result[num] = fill_value # TODO?
     result[:num] = arr[-num:]
     return result
 
@@ -132,28 +132,30 @@ def roll_all(time_series, timepoint,
              csum, csumsq, fill, dcsum,
              window_size, means, stds):
     # update time series
-    time_series = roll_numba(time_series, -1, timepoint)
+    time_series = roll_numba(time_series, -1)
+    time_series[-1] = timepoint
 
     # update cum sum
-    csum = roll_numba(csum, -1, csum[-2] + timepoint)
+    csum = roll_numba(csum, -1)
+    csum[-1] = csum[-2] + timepoint
 
     # update cum sum squared
-    csumsq = roll_numba(csumsq, -1, csumsq[-2] + timepoint ** 2)
+    csumsq = roll_numba(csumsq, -1)
+    csumsq[-1] = csumsq[-2] + timepoint ** 2
 
     # update diff cum sum
     if fill > 1:
-        dcsum = roll_numba(dcsum, -1, dcsum[-2] + np.square(
-            timepoint - time_series[-2]))
+        dcsum = roll_numba(dcsum, -1)
+        dcsum[-1] = dcsum[-2] + np.square(timepoint - time_series[-2])
 
     if fill >= window_size:
         # update means
-        means = roll_numba(means, -1,
-                           mean(len(time_series) - window_size, csum, window_size)
-                           )
+        means = roll_numba(means, -1)
+        means[-1] = mean(len(time_series) - window_size, csum, window_size)
 
         # update stds
-        stds = roll_numba(stds, -1,
-                          std(len(time_series) - window_size, csumsq, csum, window_size))
+        stds = roll_numba(stds, -1)
+        stds[-1] = std(len(time_series) - window_size, csumsq, csum, window_size)
 
     return time_series, csum, csumsq, dcsum, means, stds
 
