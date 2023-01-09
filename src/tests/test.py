@@ -20,7 +20,7 @@ from benchmark.utils import run_stream
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    selection = 19 # 16 27 59
+    selection = 59 # 16 27 59
 
     df = load_dataset("TSSB", [selection]) #
     name, w, cps, ts = df.iloc[0, :].tolist()
