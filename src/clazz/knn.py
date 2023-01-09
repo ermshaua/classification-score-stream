@@ -244,28 +244,6 @@ class TimeSeriesStream:
         self.fill = 0
         self.knn_fill = 0
 
-    def mean(self, idx):
-        window_sum = self.csum[idx+self.window_size] - self.csum[idx]
-        return window_sum / self.window_size
-
-    def std(self, idx):
-        window_sum = self.csum[idx + self.window_size] - self.csum[idx]
-        window_sum_sq = self.csumsq[idx + self.window_size] - self.csumsq[idx]
-
-        movstd = window_sum_sq / self.window_size - (window_sum / self.window_size) ** 2
-
-        # should not happen, but just in case
-        if movstd < 0:
-            return 1
-
-        movstd = np.sqrt(movstd)
-
-        # avoid dividing by too small std, like 0
-        if abs(movstd) < 1e-3:
-            return 1
-
-        return movstd
-
     def knn(self):
         self.dot_rolled, dist, knns = knn(self.knn_insert_idx, self.l, self.fill,
                     self.window_size, self.dot_rolled,
@@ -295,9 +273,10 @@ class TimeSeriesStream:
     def _update_knn(self):
         # roll existing indices further
         if self.knn_fill > 0:
-            self.dists = roll_numba(self.dists, -1, np.full(shape=self.dists.shape[1],
-                                                            fill_value=np.inf,
-                                                            dtype=np.float64))
+            self.dists = roll_numba(self.dists, -1,
+                                    np.full(shape=self.dists.shape[1],
+                                            fill_value=np.inf,
+                                            dtype=np.float64))
 
             self.knns = roll_numba(self.knns, -1)
             self.knns[self.knn_insert_idx - self.knn_fill:self.knn_insert_idx] -= 1
