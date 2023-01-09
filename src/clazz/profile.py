@@ -81,13 +81,15 @@ def _init_labels(knn, offset):
 def _init_conf_matrix(y_true, y_pred):
     conf_matrix = np.zeros(shape=(2, 4), dtype=np.float64)
 
-    for label in (0, 1):
-        tp = np.sum(np.logical_and(y_true == label, y_pred == label))
-        fp = np.sum(np.logical_and(y_true != label, y_pred == label))
-        fn = np.sum(np.logical_and(y_true == label, y_pred != label))
-        tn = np.sum(np.logical_and(y_true != label, y_pred != label))
+    # for label in (0, 1):
+    tp = np.sum(np.logical_and(y_true == 0, y_pred == 0))
+    fp = np.sum(np.logical_and(y_true != 0, y_pred == 0))
+    fn = np.sum(np.logical_and(y_true == 0, y_pred != 0))
+    tn = np.sum(np.logical_and(y_true != 0, y_pred != 0))
+    conf_matrix[0] = np.array([tp, fp, fn, tn])
 
-        conf_matrix[label] = np.array([tp, fp, fn, tn])
+    # Entries are symmetrical
+    conf_matrix[1, :] = conf_matrix[0, ::-1]
 
     return conf_matrix
 
@@ -106,10 +108,7 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     conf_matrix[0, 3] += new_true != 0 and new_pred != 0
 
     # Entries are symmetrical
-    conf_matrix[1, 0] = conf_matrix[0, 3]
-    conf_matrix[1, 1] = conf_matrix[0, 2]
-    conf_matrix[1, 2] = conf_matrix[0, 1]
-    conf_matrix[1, 3] = conf_matrix[0, 0]
+    conf_matrix[1, :] = conf_matrix[0, ::-1]
 
     # print (conf_matrix)
     return conf_matrix
