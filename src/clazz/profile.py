@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from numba import njit, prange
+from numba import njit
 
 
-def _labels(knn, split_idx, nogil=True):
+def _labels(knn, split_idx):
     n_timepoints, k_neighbours = knn.shape
 
     y_true = np.concatenate((
@@ -25,7 +25,7 @@ def _labels(knn, split_idx, nogil=True):
     return y_true, y_pred
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def _calc_neigh_pos(knn):
     ind, val = np.zeros(knn.shape[0], np.int64), np.zeros(knn.shape[0] * knn.shape[1],
                                                           np.int64)
@@ -53,7 +53,7 @@ def _calc_neigh_pos(knn):
     return ind, val
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def _init_labels(knn, offset):
     n_timepoints, k_neighbours = knn.shape
 
@@ -77,9 +77,9 @@ def _init_labels(knn, offset):
     return (zeros, ones), neigh_pos, y_true, y_pred
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def _init_conf_matrix(y_true, y_pred):
-    conf_matrix = np.zeros(shape=(2, 4), dtype=np.float64)
+    conf_matrix = np.zeros(shape=(2, 4), dtype=np.int32)
 
     tp = np.sum(np.logical_and(y_true == 0, y_pred == 0))
     fp = np.sum(np.logical_and(y_true != 0, y_pred == 0))
@@ -93,7 +93,7 @@ def _init_conf_matrix(y_true, y_pred):
     return conf_matrix
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     for label in (0, 1):
         conf_matrix[label][0] -= old_true == label and old_pred == label
@@ -108,47 +108,50 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     return conf_matrix
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def binary_f1_score(conf_matrix):
     f1_score = 0
 
     for label in (0, 1):
         tp, fp, fn, _ = conf_matrix[label]
 
-        if (tp + fp) == 0 or (tp + fn) == 0:
-            return -np.inf
+        # if (tp + fp) == 0 or (tp + fn) == 0:
+        #    return -np.inf
 
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
+        pr = tp / (tp + fp + 1e-8)
+        re = tp / (tp + fn + 1e-8)
 
-        if (pr + re) == 0:
-            return -np.inf
+        # if (pr + re) == 0:
+        #    return -np.inf
 
-        f1 = 2 * (pr * re) / (pr + re)
+        f1 = 2 * (pr * re) / (pr + re + 1e-8)
         f1_score += f1
 
     return f1_score / 2
 
 
-@njit(fastmath=True, cache=True, nogil=True)
+@njit(fastmath=True, cache=True)
 def binary_acc_score(conf_matrix):
     acc_score = 0
 
     for label in (0, 1):
         tp, fp, fn, tn = conf_matrix[label]
 
-        if (tp + fp + fn + tn) == 0:
-            return -np.inf
+        # if (tp + fp + fn + tn) == 0:
+        #    return -np.inf
 
-        acc = (tp + tn) / (tp + fp + fn + tn)
+        acc = (tp + tn) / (tp + fp + fn + tn + 1e-8)
         acc_score += acc
 
     return acc_score / 2
 
 
-@njit(fastmath=True, cache=True, nogil=True)
-def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred,
-                   conf_matrix, excl_conf_matrix):
+@njit(fastmath=True, cache=True)
+def _update_labels(
+        split_idx, excl_zone,
+        neigh_pos, knn_counts,
+        y_true, y_pred,
+        conf_matrix, excl_conf_matrix):
     np_ind, np_val = neigh_pos
     excl_start, excl_end = excl_zone
     knn_zeros, knn_ones = knn_counts
@@ -198,36 +201,31 @@ def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred,
     return y_true, y_pred, conf_matrix, excl_conf_matrix
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath=True, cache=True)
 def _fast_profile(knn, window_size, score, offset):
     n_timepoints = knn.shape[0]
     profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
 
-    factor = 4
-    rr = (n_timepoints - offset) / factor
-    intervals = np.int32([offset, offset + rr, offset + 2 * rr, offset + 3 * rr])
-    for a in prange(0, factor):
-        off = intervals[a]
-        knn_counts, neigh_pos, y_true, y_pred = _init_labels(knn, off)
-        conf_matrix = _init_conf_matrix(y_true, y_pred)
+    knn_counts, neigh_pos, y_true, y_pred = _init_labels(knn, offset)
+    conf_matrix = _init_conf_matrix(y_true, y_pred)
 
-        excl_zone = np.array([off, off + window_size])
-        excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]],
-                                             y_pred[excl_zone[0]:excl_zone[1]])
+    excl_zone = np.array([offset, offset + window_size])
+    excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]],
+                                         y_pred[excl_zone[0]:excl_zone[1]])
 
-        for split_idx in np.arange(off, min(n_timepoints-offset, np.int32(rr + off))):
-            profile[split_idx] = score(conf_matrix - excl_conf_matrix)  #
+    for split_idx in range(offset, n_timepoints - offset):
+        profile[split_idx] = score(conf_matrix - excl_conf_matrix)
 
-            y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
-                split_idx,
-                excl_zone,
-                neigh_pos,
-                knn_counts,
-                y_true,
-                y_pred,
-                conf_matrix,
-                excl_conf_matrix)
-            excl_zone += 1
+        y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
+            split_idx,
+            excl_zone,
+            neigh_pos,
+            knn_counts,
+            y_true,
+            y_pred,
+            conf_matrix,
+            excl_conf_matrix)
+        excl_zone += 1
 
     return profile
 
