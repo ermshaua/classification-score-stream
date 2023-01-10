@@ -158,25 +158,15 @@ def _update_labels(
         in_excl_zone = pos >= excl_start and pos < excl_end
         zeros, ones = knn_zeros[pos], knn_ones[pos]
 
-        if zeros >= ones:
-            conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], 0,
-                                              conf_matrix)
+        label = zeros < ones  # predict majority label
+        conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], label,
+                                          conf_matrix)
 
-            if in_excl_zone:
-                excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
-                                                       y_true[pos], 0, excl_conf_matrix)
+        if in_excl_zone:
+            excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
+                                                   y_true[pos], label, excl_conf_matrix)
 
-            y_pred[pos] = 0
-
-        if zeros < ones:
-            conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], 1,
-                                              conf_matrix)
-
-            if in_excl_zone:
-                excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
-                                                       y_true[pos], 1, excl_conf_matrix)
-
-            y_pred[pos] = 1
+        y_pred[pos] = label
 
     y_true[split_idx] = 0
 
