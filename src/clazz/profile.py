@@ -4,7 +4,7 @@ import pandas as pd
 from numba import njit, prange
 
 
-def _labels(knn, split_idx):
+def _labels(knn, split_idx, nogil=True):
     n_timepoints, k_neighbours = knn.shape
 
     y_true = np.concatenate((
@@ -25,7 +25,7 @@ def _labels(knn, split_idx):
     return y_true, y_pred
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _calc_neigh_pos(knn):
     ind, val = np.zeros(knn.shape[0], np.int64), np.zeros(knn.shape[0] * knn.shape[1],
                                                           np.int64)
@@ -53,7 +53,7 @@ def _calc_neigh_pos(knn):
     return ind, val
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _init_labels(knn, offset):
     n_timepoints, k_neighbours = knn.shape
 
@@ -77,7 +77,7 @@ def _init_labels(knn, offset):
     return (zeros, ones), neigh_pos, y_true, y_pred
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _init_conf_matrix(y_true, y_pred):
     conf_matrix = np.zeros(shape=(2, 4), dtype=np.float64)
 
@@ -93,7 +93,7 @@ def _init_conf_matrix(y_true, y_pred):
     return conf_matrix
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     for label in (0, 1):
         conf_matrix[label][0] -= old_true == label and old_pred == label
@@ -108,7 +108,7 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     return conf_matrix
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def binary_f1_score(conf_matrix):
     f1_score = 0
 
@@ -130,7 +130,7 @@ def binary_f1_score(conf_matrix):
     return f1_score / 2
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def binary_acc_score(conf_matrix):
     acc_score = 0
 
@@ -146,7 +146,7 @@ def binary_acc_score(conf_matrix):
     return acc_score / 2
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred,
                    conf_matrix, excl_conf_matrix):
     np_ind, np_val = neigh_pos
@@ -198,31 +198,36 @@ def _update_labels(split_idx, excl_zone, neigh_pos, knn_counts, y_true, y_pred,
     return y_true, y_pred, conf_matrix, excl_conf_matrix
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def _fast_profile(knn, window_size, score, offset):
     n_timepoints = knn.shape[0]
     profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
 
-    knn_counts, neigh_pos, y_true, y_pred = _init_labels(knn, offset)
-    conf_matrix = _init_conf_matrix(y_true, y_pred)
+    factor = 4
+    rr = (n_timepoints - offset) / factor
+    intervals = np.int32([offset, offset + rr, offset + 2 * rr, offset + 3 * rr])
+    for a in prange(0, factor):
+        off = intervals[a]
+        knn_counts, neigh_pos, y_true, y_pred = _init_labels(knn, off)
+        conf_matrix = _init_conf_matrix(y_true, y_pred)
 
-    excl_zone = np.array([offset, offset + window_size])
-    excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]],
-                                         y_pred[excl_zone[0]:excl_zone[1]])
+        excl_zone = np.array([off, off + window_size])
+        excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]],
+                                             y_pred[excl_zone[0]:excl_zone[1]])
 
-    for split_idx in range(offset, n_timepoints - offset):
-        profile[split_idx] = score(conf_matrix - excl_conf_matrix)  #
+        for split_idx in np.arange(off, min(n_timepoints-offset, np.int32(rr + off))):
+            profile[split_idx] = score(conf_matrix - excl_conf_matrix)  #
 
-        y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
-            split_idx,
-            excl_zone,
-            neigh_pos,
-            knn_counts,
-            y_true,
-            y_pred,
-            conf_matrix,
-            excl_conf_matrix)
-        excl_zone += 1
+            y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
+                split_idx,
+                excl_zone,
+                neigh_pos,
+                knn_counts,
+                y_true,
+                y_pred,
+                conf_matrix,
+                excl_conf_matrix)
+            excl_zone += 1
 
     return profile
 
