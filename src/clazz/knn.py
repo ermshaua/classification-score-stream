@@ -5,7 +5,7 @@ from numba import njit, objmode, bool_
 
 
 @njit(fastmath=True, cache=True)
-def rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbours, lbound):
+def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbours, lbound):
     dists[knn_insert_idx, :] = dist[knn]
     knns[knn_insert_idx, :] = knn
 
@@ -37,10 +37,10 @@ def rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbour
 
 
 # @njit(fastmath=True, cache=True)
-def knn(knn_insert_idx, l, fill,
-        window_size, dot_rolled,
-        time_series, means, stds, similarity,
-        csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
+def _knn(knn_insert_idx, l, fill,
+         window_size, dot_rolled,
+         time_series, means, stds, similarity,
+         csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
     idx = knn_insert_idx
 
     start_idx = l - (fill - window_size + 1)
@@ -121,40 +121,40 @@ def std(idx, csumsq, csum, window_size):
     return movstd
 
 @njit(fastmath=True, cache=True)
-def roll_numba(arr, num, fill_value=0):
+def _roll_numba(arr, num, fill_value=0):
     result = np.empty_like(arr)
     result[num] = fill_value # TODO?
     result[:num] = arr[-num:]
     return result
 
 @njit(fastmath=True, cache=True)
-def roll_all(time_series, timepoint,
-             csum, csumsq, fill, dcsum,
-             window_size, means, stds):
+def _roll_all(time_series, timepoint,
+              csum, csumsq, fill, dcsum,
+              window_size, means, stds):
     # update time series
-    time_series = roll_numba(time_series, -1)
+    time_series = _roll_numba(time_series, -1)
     time_series[-1] = timepoint
 
     # update cum sum
-    csum = roll_numba(csum, -1)
+    csum = _roll_numba(csum, -1)
     csum[-1] = csum[-2] + timepoint
 
     # update cum sum squared
-    csumsq = roll_numba(csumsq, -1)
+    csumsq = _roll_numba(csumsq, -1)
     csumsq[-1] = csumsq[-2] + timepoint ** 2
 
     # update diff cum sum
     if fill > 1:
-        dcsum = roll_numba(dcsum, -1)
+        dcsum = _roll_numba(dcsum, -1)
         dcsum[-1] = dcsum[-2] + np.square(timepoint - time_series[-2])
 
     if fill >= window_size:
         # update means
-        means = roll_numba(means, -1)
+        means = _roll_numba(means, -1)
         means[-1] = mean(len(time_series) - window_size, csum, window_size)
 
         # update stds
-        stds = roll_numba(stds, -1)
+        stds = _roll_numba(stds, -1)
         stds[-1] = std(len(time_series) - window_size, csumsq, csum, window_size)
 
     return time_series, csum, csumsq, dcsum, means, stds
@@ -247,11 +247,11 @@ class TimeSeriesStream:
         self.knn_fill = 0
 
     def knn(self):
-        self.dot_rolled, dist, knns = knn(self.knn_insert_idx, self.l, self.fill,
-                    self.window_size, self.dot_rolled,
-                    self.time_series, self.means, self.stds, self.similarity,
-                    self.csumsq, self.dcsum, self.exclusion_radius,
-                    self.k_neighbours, self.lbound)
+        self.dot_rolled, dist, knns = _knn(self.knn_insert_idx, self.l, self.fill,
+                                           self.window_size, self.dot_rolled,
+                                           self.time_series, self.means, self.stds, self.similarity,
+                                           self.csumsq, self.dcsum, self.exclusion_radius,
+                                           self.k_neighbours, self.lbound)
 
         return dist, knns
 
@@ -260,9 +260,9 @@ class TimeSeriesStream:
         self.fill = min(self.fill + 1, self.l)
 
         self.time_series, self.csum, self.csumsq, self.dcsum, self.means, self.stds \
-            = roll_all(self.time_series, timepoint,
-                 self.csum, self.csumsq, self.fill, self.dcsum,
-                 self.window_size, self.means, self.stds)
+            = _roll_all(self.time_series, timepoint,
+                        self.csum, self.csumsq, self.fill, self.dcsum,
+                        self.window_size, self.means, self.stds)
 
         if self.fill < self.window_size + self.exclusion_radius + self.k_neighbours:
             return self
@@ -275,12 +275,12 @@ class TimeSeriesStream:
     def _update_knn(self):
         # roll existing indices further
         if self.knn_fill > 0:
-            self.dists = roll_numba(self.dists, -1,
-                                    np.full(shape=self.dists.shape[1],
+            self.dists = _roll_numba(self.dists, -1,
+                                     np.full(shape=self.dists.shape[1],
                                             fill_value=np.inf,
                                             dtype=np.float64))
 
-            self.knns = roll_numba(self.knns, -1)
+            self.knns = _roll_numba(self.knns, -1)
             self.knns[self.knn_insert_idx - self.knn_fill:self.knn_insert_idx] -= 1
             self.knns[-1, :] = np.full(shape=self.dists.shape[1], fill_value=-1,
                                        dtype=np.float64)
@@ -288,7 +288,7 @@ class TimeSeriesStream:
         # insert new distances and knns
         dist, knn = self.knn()
 
-        self.knns, self.dists, self.lbound, self.knn_fill = rolling_knn(
+        self.knns, self.dists, self.lbound, self.knn_fill = _rolling_knn(
             self.dists, self.knns, dist, knn, self.knn_insert_idx,
             self.knn_fill, self.l, self.k_neighbours, self.lbound
         )
