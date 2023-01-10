@@ -8,11 +8,11 @@ def _labels(knn, split_idx):
     n_timepoints, k_neighbours = knn.shape
 
     y_true = np.concatenate((
-        np.zeros(split_idx, dtype=np.int64),
-        np.ones(n_timepoints - split_idx, dtype=np.int64),
+        np.zeros(split_idx, dtype=np.int32),
+        np.ones(n_timepoints - split_idx, dtype=np.int32),
     ))
 
-    knn_labels = np.zeros(shape=(k_neighbours, n_timepoints), dtype=np.int64)
+    knn_labels = np.zeros(shape=(k_neighbours, n_timepoints), dtype=np.int32)
 
     for i_neighbor in range(k_neighbours):
         neighbours = knn[:, i_neighbor]
@@ -20,18 +20,18 @@ def _labels(knn, split_idx):
 
     ones = np.sum(knn_labels, axis=0)
     zeros = k_neighbours - ones
-    y_pred = np.asarray(ones > zeros, dtype=np.int64)
+    y_pred = np.asarray(ones > zeros, dtype=np.int32)
 
     return y_true, y_pred
 
 
 @njit(fastmath=True, cache=True)
 def _calc_neigh_pos(knn):
-    ind, val = np.zeros(knn.shape[0], np.int64), np.zeros(knn.shape[0] * knn.shape[1],
-                                                          np.int64)
+    ind, val = np.zeros(knn.shape[0], np.int32), np.zeros(knn.shape[0] * knn.shape[1],
+                                                          np.int32)
 
-    counts = np.zeros(ind.shape[0], np.int64)
-    ptr = np.zeros(ind.shape[0], np.int64)
+    counts = np.zeros(ind.shape[0], np.int32)
+    ptr = np.zeros(ind.shape[0], np.int32)
 
     # count knn occurences
     for idx in range(knn.shape[0]):
@@ -58,13 +58,13 @@ def _init_labels(knn, offset):
     n_timepoints, k_neighbours = knn.shape
 
     y_true = np.concatenate((
-        np.zeros(offset, dtype=np.int64),
-        np.ones(n_timepoints - offset, dtype=np.int64),
+        np.zeros(offset, dtype=np.int32),
+        np.ones(n_timepoints - offset, dtype=np.int32),
     ))
 
     neigh_pos = _calc_neigh_pos(knn)
 
-    knn_labels = np.zeros(shape=(k_neighbours, n_timepoints), dtype=np.int64)
+    knn_labels = np.zeros(shape=(k_neighbours, n_timepoints), dtype=np.int32)
 
     for i_neighbor in range(k_neighbours):
         neighbours = knn[:, i_neighbor]
@@ -72,18 +72,19 @@ def _init_labels(knn, offset):
 
     ones = np.sum(knn_labels, axis=0)
     zeros = k_neighbours - ones
-    y_pred = np.asarray(ones > zeros, dtype=np.int64)
+    y_pred = np.asarray(ones > zeros, dtype=np.int32)
 
     return (zeros, ones), neigh_pos, y_true, y_pred
 
 
 @njit(fastmath=True, cache=True)
 def _init_conf_matrix(y_true, y_pred):
-    # Entries are symmetrical, we only need to store label 0
-    tp = np.sum(np.logical_and(y_true == 0, y_pred == 0))
-    fp = np.sum(np.logical_and(y_true != 0, y_pred == 0))
-    fn = np.sum(np.logical_and(y_true == 0, y_pred != 0))
-    tn = np.sum(np.logical_and(y_true != 0, y_pred != 0))
+    # Entries are symmetrical, we only need to store
+    # to, fp, fn, tn for label 0
+    tp = np.sum((y_true == 0) & (y_pred == 0))
+    fp = np.sum((y_true != 0) & (y_pred == 0))
+    fn = np.sum((y_true == 0) & (y_pred != 0))
+    tn = np.sum((y_true != 0) & (y_pred != 0))
     conf_matrix = np.array([tp, fp, fn, tn])
     return conf_matrix
 
@@ -194,7 +195,7 @@ def _update_labels(
 @njit(fastmath=True, cache=True)
 def _fast_profile(knn, window_size, score, offset):
     n_timepoints = knn.shape[0]
-    profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float64)
+    profile = np.full(shape=n_timepoints, fill_value=-np.inf, dtype=np.float32)
 
     knn_counts, neigh_pos, y_true, y_pred = _init_labels(knn, offset)
     conf_matrix = _init_conf_matrix(y_true, y_pred)
