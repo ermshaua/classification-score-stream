@@ -82,23 +82,19 @@ def _init_conf_matrix(y_true, y_pred):
     # Entries are symmetrical, we only need to store
     # to, fp, fn, tn for label 0
     tp = np.sum((y_true == 0) & (y_pred == 0))
-    fp = np.sum((y_true != 0) & (y_pred == 0))
-    fn = np.sum((y_true == 0) & (y_pred != 0))
-    tn = np.sum((y_true != 0) & (y_pred != 0))
+    fp = np.sum((y_true == 1) & (y_pred == 0))
+    fn = np.sum((y_true == 0) & (y_pred == 1))
+    tn = np.sum((y_true == 1) & (y_pred == 1))
     conf_matrix = np.array([tp, fp, fn, tn], dtype=np.int32)
     return conf_matrix
 
 
 @njit(fastmath=True, cache=True)
 def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
-    conf_matrix[0] -= old_true == 0 and old_pred == 0
-    conf_matrix[1] -= old_true != 0 and old_pred == 0
-    conf_matrix[2] -= old_true == 0 and old_pred != 0
-    conf_matrix[3] -= old_true != 0 and old_pred != 0
-    conf_matrix[0] += new_true == 0 and new_pred == 0
-    conf_matrix[1] += new_true != 0 and new_pred == 0
-    conf_matrix[2] += new_true == 0 and new_pred != 0
-    conf_matrix[3] += new_true != 0 and new_pred != 0
+    conf_matrix[0] -= (not old_true and not old_pred) - (not new_true and not new_pred)
+    conf_matrix[1] -= (old_true and not old_pred) - (new_true and not new_pred)
+    conf_matrix[2] -= (not old_true and old_pred) - (not new_true and new_pred)
+    conf_matrix[3] -= (old_true and old_pred) - (new_true and new_pred)
     return conf_matrix
 
 
