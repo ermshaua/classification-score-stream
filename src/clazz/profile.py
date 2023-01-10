@@ -85,7 +85,7 @@ def _init_conf_matrix(y_true, y_pred):
     fp = np.sum((y_true != 0) & (y_pred == 0))
     fn = np.sum((y_true == 0) & (y_pred != 0))
     tn = np.sum((y_true != 0) & (y_pred != 0))
-    conf_matrix = np.array([tp, fp, fn, tn])
+    conf_matrix = np.array([tp, fp, fn, tn], dtype=np.int32)
     return conf_matrix
 
 
