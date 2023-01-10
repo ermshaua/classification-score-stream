@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from numba import njit
+from numba import njit, prange
 
 
 def _labels(knn, split_idx):
@@ -81,7 +81,6 @@ def _init_labels(knn, offset):
 def _init_conf_matrix(y_true, y_pred):
     conf_matrix = np.zeros(shape=(2, 4), dtype=np.float64)
 
-    # for label in (0, 1):
     tp = np.sum(np.logical_and(y_true == 0, y_pred == 0))
     fp = np.sum(np.logical_and(y_true != 0, y_pred == 0))
     fn = np.sum(np.logical_and(y_true == 0, y_pred != 0))
@@ -96,19 +95,15 @@ def _init_conf_matrix(y_true, y_pred):
 
 @njit(fastmath=True, cache=True)
 def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
-
-    conf_matrix[0, 0] -= old_true == 0 and old_pred == 0
-    conf_matrix[0, 1] -= old_true != 0 and old_pred == 0
-    conf_matrix[0, 2] -= old_true == 0 and old_pred != 0
-    conf_matrix[0, 3] -= old_true != 0 and old_pred != 0
-
-    conf_matrix[0, 0] += new_true == 0 and new_pred == 0
-    conf_matrix[0, 1] += new_true != 0 and new_pred == 0
-    conf_matrix[0, 2] += new_true == 0 and new_pred != 0
-    conf_matrix[0, 3] += new_true != 0 and new_pred != 0
-
-    # Entries are symmetrical
-    conf_matrix[1, :] = conf_matrix[0, ::-1]
+    for label in (0, 1):
+        conf_matrix[label][0] -= old_true == label and old_pred == label
+        conf_matrix[label][1] -= old_true != label and old_pred == label
+        conf_matrix[label][2] -= old_true == label and old_pred != label
+        conf_matrix[label][3] -= old_true != label and old_pred != label
+        conf_matrix[label][0] += new_true == label and new_pred == label
+        conf_matrix[label][1] += new_true != label and new_pred == label
+        conf_matrix[label][2] += new_true == label and new_pred != label
+        conf_matrix[label][3] += new_true != label and new_pred != label
 
     return conf_matrix
 

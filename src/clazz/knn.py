@@ -132,12 +132,12 @@ def _roll_all(time_series, timepoint,
               csum, csumsq, fill, dcsum,
               window_size, means, stds):
     # update time series
-    time_series = _roll_numba(time_series, -1)
-    time_series[-1] = timepoint
+    time_series = _roll_numba(time_series, -1, timepoint)
+    # time_series[-1] = timepoint
 
     # update cum sum
-    csum = _roll_numba(csum, -1)
-    csum[-1] = csum[-2] + timepoint
+    csum = _roll_numba(csum, -1, csum[-2] + timepoint)
+    # csum[-1] = csum[-2] + timepoint
 
     # update cum sum squared
     csumsq = _roll_numba(csumsq, -1)
