@@ -155,7 +155,7 @@ def _update_labels(
             knn_zeros[pos] += 1
             knn_ones[pos] -= 1
 
-        in_excl_zone = pos >= excl_start and pos < excl_end
+        in_excl_zone = excl_end > pos >= excl_start
         zeros, ones = knn_zeros[pos], knn_ones[pos]
 
         label = zeros < ones  # predict majority label
