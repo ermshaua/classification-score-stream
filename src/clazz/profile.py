@@ -218,13 +218,15 @@ def _fast_profile(knn, window_size, score, offset):
     for split_idx in range(offset, n_timepoints - offset):
         profile[split_idx] = score(conf_matrix - excl_conf_matrix)  #
 
-        y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(split_idx,
-                                                                       excl_zone,
-                                                                       neigh_pos,
-                                                                       knn_counts,
-                                                                       y_true, y_pred,
-                                                                       conf_matrix,
-                                                                       excl_conf_matrix)
+        y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
+            split_idx,
+            excl_zone,
+            neigh_pos,
+            knn_counts,
+            y_true,
+            y_pred,
+            conf_matrix,
+            excl_conf_matrix)
         excl_zone += 1
 
     return profile
