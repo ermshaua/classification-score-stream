@@ -9,8 +9,8 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
     dists[knn_insert_idx, :] = dist[knn]
     knns[knn_insert_idx, :] = knn
 
-    # TODO:
-    # Arik: Es müsste richtig sein die change_mask auf shape=self.l - self.bound
+    # TODO: Arik
+    # Es müsste richtig sein die change_mask auf shape=self.l - self.bound
     # zu setzen und dann die kNNs ab self.lbound zu updaten.
     idx = np.arange(knn_insert_idx - knn_fill, knn_insert_idx)
     change_mask = np.full(shape=l, fill_value=True, dtype=np.bool_)

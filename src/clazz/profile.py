@@ -138,7 +138,7 @@ def _update_labels(
         split_idx, excl_zone,
         neigh_pos, knn_counts,
         y_true, y_pred,
-        conf_matrix, excl_conf_matrix):
+        conf_matrix):
     np_ind, np_val = neigh_pos
     excl_start, excl_end = excl_zone
     knn_zeros, knn_ones = knn_counts
@@ -173,7 +173,7 @@ def _update_labels(
                                       y_true[excl_start], y_pred[excl_start],
                                       conf_matrix)
 
-    return y_true, y_pred, conf_matrix, excl_conf_matrix
+    return y_true, y_pred, conf_matrix
 
 
 @njit(fastmath=True, cache=True)
@@ -193,15 +193,15 @@ def _fast_profile(knn, window_size, score, offset):
     for split_idx in range(offset, n_timepoints - offset):
         profile[split_idx] = score(conf_matrix)
 
-        y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
+        _update_labels(
             split_idx,
             excl_zone,
             neigh_pos,
             knn_counts,
-            y_true,
-            y_pred,
-            conf_matrix,
-            excl_conf_matrix)
+            y_true, # call-by-reference
+            y_pred, # call-by-reference
+            conf_matrix # call-by-reference
+        )
         excl_zone += 1
 
     return profile
