@@ -159,21 +159,22 @@ def _update_labels(
         zeros, ones = knn_zeros[pos], knn_ones[pos]
 
         label = zeros < ones  # predict majority label
-        conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], label,
+        if not in_excl_zone:
+            conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], label,
                                           conf_matrix)
 
-        if in_excl_zone:
-            excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
-                                                   y_true[pos], label, excl_conf_matrix)
+            # excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
+            #                                       y_true[pos], label, excl_conf_matrix)
 
         y_pred[pos] = label
 
     y_true[split_idx] = 0
 
     # update exclusion zone range
-    excl_conf_matrix = _update_conf_matrix(y_true[excl_start], y_pred[excl_start],
-                                           y_true[excl_end], y_pred[excl_end],
-                                           excl_conf_matrix)
+    conf_matrix = _update_conf_matrix(
+                                       y_true[excl_end], y_pred[excl_end],
+                                        y_true[excl_start], y_pred[excl_start],
+                                       conf_matrix)
 
     return y_true, y_pred, conf_matrix, excl_conf_matrix
 
@@ -190,8 +191,10 @@ def _fast_profile(knn, window_size, score, offset):
     excl_conf_matrix = _init_conf_matrix(y_true[excl_zone[0]:excl_zone[1]],
                                          y_pred[excl_zone[0]:excl_zone[1]])
 
+    conf_matrix = conf_matrix - excl_conf_matrix
+
     for split_idx in range(offset, n_timepoints - offset):
-        profile[split_idx] = score(conf_matrix - excl_conf_matrix)
+        profile[split_idx] = score(conf_matrix)
 
         y_true, y_pred, conf_matrix, excl_conf_matrix = _update_labels(
             split_idx,
