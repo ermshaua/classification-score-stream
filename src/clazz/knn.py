@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.fft as fft
 
-from numba import njit, objmode, bool_
+from numba import njit, objmode, bool_, prange
 
 
 @njit(fastmath=True, cache=True)
@@ -19,12 +19,10 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
 
         change_mask[change_idx] = False
 
-        knns[change_idx, kdx + 1:] = knns[change_idx,
-                                          kdx:k_neighbours - 1]
+        knns[change_idx, kdx + 1:] = knns[change_idx, kdx:k_neighbours - 1]
         knns[change_idx, kdx] = knn_insert_idx
 
-        dists[change_idx, kdx + 1:] = dists[change_idx,
-                                           kdx:k_neighbours - 1]
+        dists[change_idx, kdx + 1:] = dists[change_idx, kdx:k_neighbours - 1]
         dists[change_idx, kdx] = dist[change_idx]
 
     # decrease lbound
