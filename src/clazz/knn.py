@@ -58,7 +58,8 @@ def _knn(knn_insert_idx, l, fill,
 
     rolled_dist = None
 
-    # z-normed ed is squared (we are actually using z-normed ED instead of pearson, which is the same)
+    # z-normed ed is squared
+    # (we are actually using z-normed ED instead of pearson, which is the same)
     if similarity == "pearson":
         rolled_dist = 2 * window_size * (1 - (
                 dot_rolled - window_size * means * means[
