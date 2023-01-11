@@ -157,24 +157,21 @@ def _update_labels(
 
         in_excl_zone = excl_end > pos >= excl_start
         zeros, ones = knn_zeros[pos], knn_ones[pos]
-
         label = zeros < ones  # predict majority label
         if not in_excl_zone:
-            conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos], y_true[pos], label,
-                                          conf_matrix)
-
-            # excl_conf_matrix = _update_conf_matrix(y_true[pos], y_pred[pos],
-            #                                       y_true[pos], label, excl_conf_matrix)
+            conf_matrix = _update_conf_matrix(y_true[pos],
+                                              y_pred[pos],
+                                              y_true[pos],
+                                              label, conf_matrix)
 
         y_pred[pos] = label
 
     y_true[split_idx] = 0
 
     # update exclusion zone range
-    conf_matrix = _update_conf_matrix(
-                                       y_true[excl_end], y_pred[excl_end],
-                                        y_true[excl_start], y_pred[excl_start],
-                                       conf_matrix)
+    conf_matrix = _update_conf_matrix(y_true[excl_end], y_pred[excl_end],
+                                      y_true[excl_start], y_pred[excl_start],
+                                      conf_matrix)
 
     return y_true, y_pred, conf_matrix, excl_conf_matrix
 
