@@ -36,9 +36,9 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
     return knns, dists, lbound, knn_fill
 
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def _knn(knn_insert_idx, l, fill,
-         window_size, dot_rolled,
+         window_size, dot_rolled, first,
          time_series, means, stds, similarity,
          csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
     idx = knn_insert_idx
@@ -47,8 +47,8 @@ def _knn(knn_insert_idx, l, fill,
     valid_dist = slice(l - (fill - window_size + 1), l)
     dist = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
 
-    if dot_rolled is None:
-        dot_rolled = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
+    if first:
+        # dot_rolled = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
         dot_rolled[valid_dist] = _sliding_dot(
             time_series[idx:idx + window_size],
             time_series[-fill:])
@@ -78,8 +78,9 @@ def _knn(knn_insert_idx, l, fill,
         ce = dcsum[window_size:] - dcsum[:-window_size] + 1e-5  # add some noise to prevent zero divisons
 
         last_ce = np.repeat(ce[idx], ce.shape[0])
-        cf = (np.max(np.dstack((ce, last_ce)), axis=2) / np.min(
-            np.dstack((ce, last_ce)), axis=2))[0]
+        with objmode(cf="float64[:]"):
+            cf = (np.max(np.dstack((ce, last_ce)), axis=2) / np.min(
+                np.dstack((ce, last_ce)), axis=2))[0]
 
         rolled_dist = ed * cf
 
@@ -153,7 +154,7 @@ def _roll_all(time_series, timepoint,
 
     return time_series, csum, csumsq, dcsum, means, stds
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def _sliding_dot(query, time_series):
     m = len(query)
     n = len(time_series)
@@ -173,8 +174,8 @@ def _sliding_dot(query, time_series):
     query = np.concatenate((query, np.zeros(n - m + time_series_add - q_add)))
 
     trim = m - 1 + time_series_add
-    # with objmode(dot_product="float32[:]"):
-    dot_product = fft.irfft(fft.rfft(time_series) * fft.rfft(query))
+    with objmode(dot_product="float64[:]"):
+        dot_product = fft.irfft(fft.rfft(time_series) * fft.rfft(query))
     return dot_product[trim:]
 
 
@@ -241,8 +242,12 @@ class TimeSeriesStream:
         self.knn_fill = 0
 
     def knn(self):
+        first = self.dot_rolled is None
+        if self.dot_rolled is None:
+            self.dot_rolled = np.full(shape=self.l, fill_value=np.inf, dtype=np.float64)
+
         self.dot_rolled, dist, knns = _knn(self.knn_insert_idx, self.l, self.fill,
-                                           self.window_size, self.dot_rolled,
+                                           self.window_size, self.dot_rolled, first,
                                            self.time_series, self.means, self.stds, self.similarity,
                                            self.csumsq, self.dcsum, self.exclusion_radius,
                                            self.k_neighbours, self.lbound)
