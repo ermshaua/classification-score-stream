@@ -41,8 +41,8 @@ def _knn(knn_insert_idx, l, fill,
          csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
     idx = knn_insert_idx
 
-    start_idx = l - (fill - window_size + 1)
-    valid_dist = slice(l - (fill - window_size + 1), l)
+    start_idx = lbound-1 # l - (fill - window_size + 1)
+    valid_dist = slice(start_idx, l)
     dist = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
 
     if first:
@@ -88,6 +88,7 @@ def _knn(knn_insert_idx, l, fill,
     excl_range = slice(max(0, idx - exclusion_radius),
                        min(idx + exclusion_radius, l))  #
     dist[excl_range] = np.max(dist)
+    # print (lbound, (l - (fill - window_size + 1), l))
     knns = argkmin(dist, k_neighbours, lbound)
 
     # update dot product
