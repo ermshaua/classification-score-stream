@@ -125,7 +125,7 @@ def std(idx, csumsq, csum, window_size):
 @njit(fastmath=True, cache=True)
 def _roll_numba(arr, num, fill_value=0):
     result = np.empty_like(arr)
-    result[num] = fill_value # TODO?
+    result[num] = fill_value
     result[:num] = arr[-num:]
     return result
 
