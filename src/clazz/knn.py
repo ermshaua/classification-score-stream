@@ -9,8 +9,12 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
     dists[knn_insert_idx, :] = dist[knn]
     knns[knn_insert_idx, :] = knn
 
+    # TODO:
+    # Arik: Es müsste richtig sein die change_mask auf shape=self.l - self.bound
+    # zu setzen und dann die kNNs ab self.lbound zu updaten.
     idx = np.arange(knn_insert_idx - knn_fill, knn_insert_idx)
-    change_mask = np.full(shape=l, fill_value=True, dtype=bool_)
+    change_mask = np.full(shape=l, fill_value=True, dtype=np.bool_)
+    change_mask[:lbound] = False
 
     for kdx in range(k_neighbours - 1):
         change_idx = dist[idx] < dists[idx, kdx]
@@ -18,7 +22,6 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
         change_idx = idx[change_idx]
 
         change_mask[change_idx] = False
-
         knns[change_idx, kdx + 1:] = knns[change_idx, kdx:k_neighbours - 1]
         knns[change_idx, kdx] = knn_insert_idx
 
@@ -41,12 +44,11 @@ def _knn(knn_insert_idx, l, fill,
          csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
     idx = knn_insert_idx
 
-    start_idx = lbound-1 # l - (fill - window_size + 1)
+    start_idx = lbound-1  # l - (fill - window_size + 1)
     valid_dist = slice(start_idx, l)
     dist = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
 
     if first:
-        # dot_rolled = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
         dot_rolled[valid_dist] = _sliding_dot(
             time_series[idx:idx + window_size],
             time_series[-fill:])
@@ -88,7 +90,6 @@ def _knn(knn_insert_idx, l, fill,
     excl_range = slice(max(0, idx - exclusion_radius),
                        min(idx + exclusion_radius, l))  #
     dist[excl_range] = np.max(dist)
-    # print (lbound, (l - (fill - window_size + 1), l))
     knns = argkmin(dist, k_neighbours, lbound)
 
     # update dot product
