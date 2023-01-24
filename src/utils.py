@@ -74,6 +74,7 @@ def load_archives_dataset():
         load_dataset("WESAD"),
         load_dataset("MIT-BIH-VE"),
         load_dataset("MIT-BIH-Arr"),
+        load_dataset("SleepDB"),
     ])
     df.sort_values(by="name", inplace=True)
     df.reset_index(drop=True, inplace=True)

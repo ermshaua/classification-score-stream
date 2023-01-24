@@ -28,7 +28,7 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
         if window_profile.shape[0] > profile.shape[0]:
             window_profile = window_profile[-profile.shape[0]:]
 
-        profile[max(0, dx-window_profile.shape[0]):dx] = aggregate_profile([
+        profile[max(0, dx-window_profile.shape[0]):dx] = aggregate_profile([ # todo: +1
             profile[max(0, dx-window_profile.shape[0]):dx],
             window_profile[max(0, window_profile.shape[0]-dx):]
         ], axis=0)
