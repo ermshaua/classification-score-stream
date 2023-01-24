@@ -80,12 +80,14 @@ def _init_labels(knn, offset):
 @njit(fastmath=True, cache=True)
 def _init_conf_matrix(y_true, y_pred):
     # Entries are symmetrical, we only need to store
-    # to, fp, fn, tn for label 0
+    # tp, fp, fn, tn for label 0
     tp = np.sum((y_true == 0) & (y_pred == 0))
     fp = np.sum((y_true == 1) & (y_pred == 0))
     fn = np.sum((y_true == 0) & (y_pred == 1))
     tn = np.sum((y_true == 1) & (y_pred == 1))
+
     conf_matrix = np.array([tp, fp, fn, tn], dtype=np.int32)
+
     return conf_matrix
 
 
@@ -95,6 +97,7 @@ def _update_conf_matrix(old_true, old_pred, new_true, new_pred, conf_matrix):
     conf_matrix[1] -= (old_true and not old_pred) - (new_true and not new_pred)
     conf_matrix[2] -= (not old_true and old_pred) - (not new_true and new_pred)
     conf_matrix[3] -= (old_true and old_pred) - (new_true and new_pred)
+
     return conf_matrix
 
 
@@ -108,10 +111,16 @@ def binary_f1_score(conf_matrix):
         else:
             _, fn, fp, tp = conf_matrix
 
-        pr = tp / (tp + fp + 1e-8)
-        re = tp / (tp + fn + 1e-8)
+        if (tp + fp) == 0 or (tp + fn) == 0:
+            return -np.inf
 
-        f1 = 2 * (pr * re) / (pr + re + 1e-8)
+        pr = tp / (tp + fp)
+        re = tp / (tp + fn)
+
+        if (pr + re) == 0:
+            return -np.inf
+
+        f1 = 2 * (pr * re) / (pr + re)
         f1_score += f1
 
     return f1_score / 2
@@ -127,7 +136,10 @@ def binary_acc_score(conf_matrix):
         else:
             tn, fn, fp, tp = conf_matrix
 
-        acc = (tp + tn) / (tp + fp + fn + tn + 1e-8)
+        if (tp + fp + fn + tn) == 0:
+            return -np.inf
+
+        acc = (tp + tn) / (tp + fp + fn + tn)
         acc_score += acc
 
     return acc_score / 2
@@ -198,9 +210,9 @@ def _fast_profile(knn, window_size, score, offset):
             excl_zone,
             neigh_pos,
             knn_counts,
-            y_true, # call-by-reference
-            y_pred, # call-by-reference
-            conf_matrix # call-by-reference
+            y_true,
+            y_pred,
+            conf_matrix
         )
         excl_zone += 1
 

@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.fft as fft
 
-from numba import njit, objmode, bool_, prange
+from numba import njit, objmode
 
 
 @njit(fastmath=True, cache=True)
@@ -9,19 +9,15 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
     dists[knn_insert_idx, :] = dist[knn]
     knns[knn_insert_idx, :] = knn
 
-    # TODO: Arik
-    # Es müsste richtig sein die change_mask auf shape=self.l - self.bound
-    # zu setzen und dann die kNNs ab self.lbound zu updaten.
-    idx = np.arange(knn_insert_idx - knn_fill, knn_insert_idx)
-    change_mask = np.full(shape=l, fill_value=True, dtype=np.bool_)
-    change_mask[:lbound] = False
+    idx = np.arange(lbound, l)
+    change_mask = np.full(shape=l-lbound, fill_value=True, dtype=np.bool_)
 
     for kdx in range(k_neighbours - 1):
         change_idx = dist[idx] < dists[idx, kdx]
-        change_idx = np.logical_and(change_idx, change_mask[idx])
+        change_idx = np.logical_and(change_idx, change_mask[idx-lbound]) #
         change_idx = idx[change_idx]
 
-        change_mask[change_idx] = False
+        change_mask[change_idx-lbound] = False #
         knns[change_idx, kdx + 1:] = knns[change_idx, kdx:k_neighbours - 1]
         knns[change_idx, kdx] = knn_insert_idx
 
@@ -90,21 +86,22 @@ def _knn(knn_insert_idx, l, fill,
     excl_range = slice(max(0, idx - exclusion_radius),
                        min(idx + exclusion_radius, l))  #
     dist[excl_range] = np.max(dist)
-    knns = argkmin(dist, k_neighbours, lbound)
+    knns = _argkmin(dist, k_neighbours, lbound)
 
     # update dot product
     dot_rolled -= time_series[idx] * time_series[:l]
 
     return dot_rolled, dist, knns
 
+
 @njit(fastmath=True, cache=True)
-def mean(idx, csum, window_size):
+def _mean(idx, csum, window_size):
     window_sum = csum[idx + window_size] - csum[idx]
     return window_sum / window_size
 
 
 @njit(fastmath=True, cache=True)
-def std(idx, csumsq, csum, window_size):
+def _std(idx, csumsq, csum, window_size):
     window_sum = csum[idx + window_size] - csum[idx]
     window_sum_sq = csumsq[idx + window_size] - csumsq[idx]
 
@@ -122,12 +119,14 @@ def std(idx, csumsq, csum, window_size):
 
     return movstd
 
+
 @njit(fastmath=True, cache=True)
 def _roll_numba(arr, num, fill_value=0):
     result = np.empty_like(arr)
     result[num] = fill_value
     result[:num] = arr[-num:]
     return result
+
 
 @njit(fastmath=True, cache=True)
 def _roll_all(time_series, timepoint,
@@ -148,12 +147,13 @@ def _roll_all(time_series, timepoint,
 
     if fill >= window_size:
         # update means
-        means = _roll_numba(means, -1, mean(len(time_series) - window_size, csum, window_size))
+        means = _roll_numba(means, -1, _mean(len(time_series) - window_size, csum, window_size))
 
         # update stds
-        stds = _roll_numba(stds, -1, std(len(time_series) - window_size, csumsq, csum, window_size))
+        stds = _roll_numba(stds, -1, _std(len(time_series) - window_size, csumsq, csum, window_size))
 
     return time_series, csum, csumsq, dcsum, means, stds
+
 
 @njit(fastmath=True, cache=True)
 def _sliding_dot(query, time_series):
@@ -181,7 +181,7 @@ def _sliding_dot(query, time_series):
 
 
 @njit(fastmath=True, cache=True)
-def argkmin(dist, k, lbound):
+def _argkmin(dist, k, lbound):
     args = np.zeros(shape=k, dtype=np.int64)
     vals = np.zeros(shape=k, dtype=np.float64)
 

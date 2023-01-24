@@ -12,7 +12,7 @@ from src.competitor.Window import Window
 from src.competitor.BOCD import BOCD
 from src.utils import load_dataset
 from benchmark.metrics import covering
-from src.visualizer import plot_clasp_with_ts
+from src.visualizer import plot_profile_with_ts
 from src.realtime_animation import ClaSPSegmetationStreamViewer
 from benchmark.utils import run_stream
 
@@ -20,9 +20,9 @@ from benchmark.utils import run_stream
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    selection = 19 # 16 27 59
+    selection = 59 # 16 27 59
 
-    df = load_dataset("MIT-BIH-VE", [selection]) #
+    df = load_dataset("TSSB", [selection]) #
     name, w, cps, ts = df.iloc[0, :].tolist()
 
     from src.clazz.profile import binary_acc_score
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     scores = stream.scores
 
-    plot_clasp_with_ts(
+    plot_profile_with_ts(
         name,
         ts,
         profile,

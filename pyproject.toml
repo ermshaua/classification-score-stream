@@ -1,12 +1,12 @@
 [project]
-name = "clasp"
+name = "classification-score-stream"
 
 version = "0.1.0"
 
 description = ""
 readme = "README.md"
 authors = [
-    {name = "Arik Ermshaus", email = "void@void.com"}
+    {name = "Arik Ermshaus", email = "ermshaua@informatik.hu-berlin.de"}
 ]
 keywords = [
     "machine-learning",
@@ -26,9 +26,7 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.8"
 ]
 requires-python = ">=3.7,<3.11"
 dependencies = [
@@ -41,7 +39,7 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/ermshaua/time-series-segmentation-benchmark"
+repository = "https://github.com/ermshaua/classification-score-stream"
 #documentation = ""
 #download = ""
 

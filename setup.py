@@ -26,14 +26,10 @@ setup(
     long_description_content_type='text/markdown',
     name=pyproject["project"]["name"],
     package_data={
-        "weasel": [
+        "class": [
             "*.csv",
             "*.csv.gz",
-            "*.arff",
-            "*.arff.gz",
             "*.txt",
-            "*.ts",
-            "*.tsv",
         ]
     },
     packages=find_packages(
