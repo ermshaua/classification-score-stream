@@ -19,8 +19,8 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
 
     competitors = [
         ("ClaSS", evaluate_class),
-        ("FLOSS", evaluate_floss),
-        ("Window", evaluate_window),
+        # ("FLOSS", evaluate_floss),
+        # ("Window", evaluate_window),
         # ("BOCD", evaluate_bocd)
     ]
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
 
-    # evaluate_competitor_dataset("UTSA", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("TSSB", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("UTSA", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("TSSB", exp_path, n_jobs, verbose)
 
     evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
