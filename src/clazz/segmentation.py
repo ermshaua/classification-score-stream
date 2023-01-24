@@ -14,7 +14,10 @@ from tqdm import tqdm
 
 class ClaSS:
 
-    def __init__(self, n_timepoints=10_000, n_prerun=None, window_size=suss, k_neighbours=3, score=binary_f1_score, jump=5, p_value=1e-50, sample_size=1_000, similarity="pearson", profile_mode="global", verbose=0):
+    def __init__(self, n_timepoints=10_000, n_prerun=None, window_size=suss,
+                 k_neighbours=3, score=binary_f1_score, jump=5, p_value=1e-50,
+                 sample_size=1_000, similarity="pearson",
+                 profile_mode="global", verbose=0):
         if n_prerun is None: n_prerun = n_timepoints
 
         self.n_timepoints = n_timepoints
