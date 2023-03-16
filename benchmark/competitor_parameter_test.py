@@ -7,7 +7,8 @@ np.random.seed(1379)
 from itertools import product
 from src.clazz.profile import binary_f1_score, binary_acc_score
 from src.clazz.window_size import dominant_fourier_freq, highest_autocorrelation, suss, mwf
-from benchmark.utils import evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd
+from benchmark.utils import evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, \
+    evaluate_ddm, evaluate_hddm
 
 
 def evaluate_floss_threshold(exp_path, n_jobs, verbose):
@@ -91,6 +92,84 @@ def evaluate_bocd_threshold(exp_path, n_jobs, verbose):
         df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
 
 
+def evaluate_adwin_delta(exp_path, n_jobs, verbose):
+    name = "adwin_delta"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    deltas = [0.002, 0.004, 0.006, 0.008, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1]
+
+    for d in deltas:
+        candidate_name = f"{d}-delta"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_adwin,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            delta=d
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
+def evaluate_ddm_out_control(exp_path, n_jobs, verbose):
+    name = "ddm_out_control"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    out_control_levels = list(range(1,30+1))
+
+    for o in out_control_levels:
+        candidate_name = f"{o}-out_control_level"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_ddm,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            out_control_level=o
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
+def evaluate_hddm_drift_confidence(exp_path, n_jobs, verbose):
+    name = "hddm_drift_confidence"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    confs = (1e-10, 1e-20, 1e-30, 1e-40, 1e-50, 1e-60, 1e-70, 1e-80, 1e-90, 1e-100)
+
+    for c in confs:
+        candidate_name = f"{c}-drift_confidence"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_hddm,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            drift_confidence=c
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
 if __name__ == '__main__':
     exp_path = "../experiments/"
     n_jobs, verbose = 60, 0
@@ -99,7 +178,8 @@ if __name__ == '__main__':
         os.mkdir(exp_path)
 
     # evaluate_floss_threshold(exp_path, n_jobs, verbose)
-    evaluate_window_cost_threshold(exp_path, n_jobs, verbose)
+    # evaluate_window_cost_threshold(exp_path, n_jobs, verbose)
     # evaluate_bocd_threshold(exp_path, n_jobs, verbose)
+    evaluate_hddm_drift_confidence(exp_path, n_jobs, verbose)
 
 

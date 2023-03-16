@@ -10,6 +10,10 @@ from src.clazz.segmentation import ClaSS
 from src.competitor.FLOSS import FLOSS
 from src.competitor.Window import Window
 from src.competitor.BOCD import BOCD
+from src.competitor.ADWIN import ADWIN
+from src.competitor.DDM import DDM
+from src.competitor.HDDM import HDDM
+from src.competitor.PageHinkley import PageHinkley
 from src.utils import load_dataset
 from benchmark.metrics import covering
 from src.visualizer import plot_profile_with_ts
@@ -20,17 +24,21 @@ from benchmark.utils import run_stream
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    selection = 59 # 16 27 59
+    selection = 1 # 16 27 59
 
     df = load_dataset("TSSB", [selection]) #
     name, w, cps, ts = df.iloc[0, :].tolist()
 
+    # df = pd.read_csv("../tmp/penguin.txt", sep="\t", header=None)
+    # name, w, cps, ts = "X-Acc of Penguin Movement", None, np.array([]), df.iloc[:,0]
+
     from src.clazz.profile import binary_acc_score
 
-    stream = ClaSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0]) #
+    # stream = ClaSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), jump=None, verbose=ts.shape[0]) #
     # stream = FLOSS(window_size=w, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0])
     # stream = Window(window_size=w, verbose=ts.shape[0])
     # stream = BOCD(n_timepoints=10_000, threshold=-1, verbose=ts.shape[0])
+    stream = PageHinkley(verbose=ts.shape[0])
 
     # stream = ClaSPSegmetationStreamViewer(name, stream, frame_rate=w)
 

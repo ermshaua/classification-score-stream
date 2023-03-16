@@ -6,7 +6,7 @@ np.random.seed(1379)
 
 from itertools import product
 from src.clazz.profile import binary_f1_score, binary_acc_score
-from benchmark.utils import evaluate_class, evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd
+from benchmark.utils import evaluate_class, evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, evaluate_ddm, evaluate_hddm
 
 
 def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
@@ -18,10 +18,13 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
     os.mkdir(exp_path + name)
 
     competitors = [
-        ("ClaSS", evaluate_class),
+        # ("ClaSS", evaluate_class),
         # ("FLOSS", evaluate_floss),
         # ("Window", evaluate_window),
         # ("BOCD", evaluate_bocd)
+        ("ADWIN", evaluate_adwin),
+        ("DDM", evaluate_ddm),
+        ("HDDM", evaluate_hddm),
     ]
 
     for candidate_name, eval_func in competitors:
@@ -40,7 +43,7 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
 
 if __name__ == '__main__':
     exp_path = "../experiments/"
-    n_jobs, verbose = 60, 0
+    n_jobs, verbose = 10, 0
 
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
@@ -51,6 +54,6 @@ if __name__ == '__main__':
     evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)

@@ -4,11 +4,14 @@ import numpy as np
 import pandas as pd
 import daproli as dp
 
+from src.competitor.HDDM import HDDM
 from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
 from src.clazz.segmentation import ClaSS
 from src.competitor.FLOSS import FLOSS
 from src.competitor.Window import Window
 from src.competitor.BOCD import BOCD
+from src.competitor.ADWIN import ADWIN
+from src.competitor.DDM import DDM
 from benchmark.metrics import f_measure, covering
 from tqdm import tqdm
 
@@ -28,9 +31,9 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
         if window_profile.shape[0] > profile.shape[0]:
             window_profile = window_profile[-profile.shape[0]:]
 
-        profile[max(0, dx-window_profile.shape[0]):dx] = aggregate_profile([ # todo: +1
-            profile[max(0, dx-window_profile.shape[0]):dx],
-            window_profile[max(0, window_profile.shape[0]-dx):]
+        profile[max(0, dx-window_profile.shape[0]+1):dx+1] = aggregate_profile([
+            profile[max(0, dx-window_profile.shape[0]+1):dx+1],
+            window_profile[max(0, window_profile.shape[0]-dx-1):]
         ], axis=0)
 
         # store runtime
@@ -100,6 +103,39 @@ def evaluate_window(name, w, cps, ts, **seg_kwargs):
 def evaluate_bocd(name, w, cps, ts, **seg_kwargs):
     stream = BOCD(verbose=0, **seg_kwargs)
     profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.min)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_adwin(name, w, cps, ts, **seg_kwargs):
+    stream = ADWIN(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_ddm(name, w, cps, ts, **seg_kwargs):
+    stream = DDM(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_hddm(name, w, cps, ts, **seg_kwargs):
+    stream = HDDM(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
 
     f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
     covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
