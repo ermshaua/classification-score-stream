@@ -1,0 +1,15 @@
+numpy==1.23.5
+numba==0.56.4
+scipy==1.10.1
+pandas==1.5.3
+statsmodels==0.12.1
+daproli==0.22
+tqdm==4.62.3
+bocd==0.1.2
+stumpy==1.11.0
+onlinecp==0.0a0
+ruptures==1.1.5
+matplotlib==3.6.3
+seaborn==0.11.2
+toml==0.10.2
+setuptools==58.3.0
