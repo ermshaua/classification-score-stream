@@ -14,6 +14,8 @@ from src.competitor.ADWIN import ADWIN
 from src.competitor.DDM import DDM
 from src.competitor.HDDM import HDDM
 from src.competitor.PageHinkley import PageHinkley
+from src.competitor.NEWMA import NEWMA
+from src.competitor.ChangeFinder import ChangeFinder
 from src.utils import load_dataset
 from benchmark.metrics import covering
 from src.visualizer import plot_profile_with_ts
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     # stream = FLOSS(window_size=w, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0])
     # stream = Window(window_size=w, verbose=ts.shape[0])
     # stream = BOCD(n_timepoints=10_000, threshold=-1, verbose=ts.shape[0])
-    stream = PageHinkley(verbose=ts.shape[0])
+    stream = NEWMA(verbose=ts.shape[0])
 
     # stream = ClaSPSegmetationStreamViewer(name, stream, frame_rate=w)
 

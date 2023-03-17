@@ -6,7 +6,7 @@ np.random.seed(1379)
 
 from itertools import product
 from src.clazz.profile import binary_f1_score, binary_acc_score
-from benchmark.utils import evaluate_class, evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, evaluate_ddm, evaluate_hddm
+from benchmark.utils import evaluate_class, evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, evaluate_ddm, evaluate_hddm, evaluate_change_finder, evaluate_newma
 
 
 def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
@@ -22,9 +22,11 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
         # ("FLOSS", evaluate_floss),
         # ("Window", evaluate_window),
         # ("BOCD", evaluate_bocd)
-        ("ADWIN", evaluate_adwin),
-        ("DDM", evaluate_ddm),
-        ("HDDM", evaluate_hddm),
+        #("ADWIN", evaluate_adwin),
+        #("DDM", evaluate_ddm),
+        #("HDDM", evaluate_hddm),
+        ("ChangeFinder", evaluate_change_finder),
+        ("NEWMA", evaluate_newma)
     ]
 
     for candidate_name, eval_func in competitors:

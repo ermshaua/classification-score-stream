@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import daproli as dp
 
+from src.competitor.ChangeFinder import ChangeFinder
 from src.competitor.HDDM import HDDM
 from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
 from src.clazz.segmentation import ClaSS
@@ -12,6 +13,7 @@ from src.competitor.Window import Window
 from src.competitor.BOCD import BOCD
 from src.competitor.ADWIN import ADWIN
 from src.competitor.DDM import DDM
+from src.competitor.NEWMA import NEWMA
 from benchmark.metrics import f_measure, covering
 from tqdm import tqdm
 
@@ -135,6 +137,28 @@ def evaluate_ddm(name, w, cps, ts, **seg_kwargs):
 
 def evaluate_hddm(name, w, cps, ts, **seg_kwargs):
     stream = HDDM(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_change_finder(name, w, cps, ts, **seg_kwargs):
+    stream = ChangeFinder(verbose=0, **seg_kwargs)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
+
+    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
+    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
+
+    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+
+
+def evaluate_newma(name, w, cps, ts, **seg_kwargs):
+    stream = NEWMA(verbose=0, **seg_kwargs)
     profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
 
     f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)

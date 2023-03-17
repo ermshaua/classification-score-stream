@@ -8,7 +8,7 @@ from itertools import product
 from src.clazz.profile import binary_f1_score, binary_acc_score
 from src.clazz.window_size import dominant_fourier_freq, highest_autocorrelation, suss, mwf
 from benchmark.utils import evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, \
-    evaluate_ddm, evaluate_hddm
+    evaluate_ddm, evaluate_hddm, evaluate_change_finder, evaluate_newma
 
 
 def evaluate_floss_threshold(exp_path, n_jobs, verbose):
@@ -170,6 +170,58 @@ def evaluate_hddm_drift_confidence(exp_path, n_jobs, verbose):
         df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
 
 
+def evaluate_change_finder_threshold(exp_path, n_jobs, verbose):
+    name = "change_finder_threshold"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    thresholds = list(range(10,100+1,10))
+
+    for t in thresholds:
+        candidate_name = f"{t}-threshold"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_change_finder,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            threshold=t
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
+def evaluate_newma_thresholding_quantile(exp_path, n_jobs, verbose):
+    name = "newma_thresholding_quantile"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    thresholds = (0.95, 0.96, 0.97, 0.98, 0.99, 1.)
+
+    for t in thresholds:
+        candidate_name = f"{t}-threshold"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_newma,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            thresholding_quantile=t
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
 if __name__ == '__main__':
     exp_path = "../experiments/"
     n_jobs, verbose = 60, 0
@@ -180,6 +232,6 @@ if __name__ == '__main__':
     # evaluate_floss_threshold(exp_path, n_jobs, verbose)
     # evaluate_window_cost_threshold(exp_path, n_jobs, verbose)
     # evaluate_bocd_threshold(exp_path, n_jobs, verbose)
-    evaluate_hddm_drift_confidence(exp_path, n_jobs, verbose)
+    evaluate_newma_thresholding_quantile(exp_path, n_jobs, verbose)
 
 
