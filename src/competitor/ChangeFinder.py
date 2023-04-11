@@ -43,7 +43,12 @@ class ChangeFinder:
 
         self.profile = np.roll(self.profile, -1)
 
-        score = self.change_finder.update(timepoint)
+        try:
+            # fails sometimes
+            score = self.change_finder.update(timepoint)
+        except:
+            score = 0
+
         self.profile[-1] = score
 
         if score < self.threshold:

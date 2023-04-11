@@ -58,7 +58,7 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
 
 def evaluate_class(name, w, cps, ts, **seg_kwargs):
     if "n_timepoints" in seg_kwargs:
-        n_prerun = min(seg_kwargs["n_prerun"], ts.shape[0])
+        n_prerun = min(seg_kwargs["n_timepoints"], ts.shape[0])
     else:
         n_prerun = min(10_000, ts.shape[0])
 

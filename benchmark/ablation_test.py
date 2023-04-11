@@ -1,12 +1,42 @@
-import sys, os, shutil
+import os
+import shutil
+import sys
+
 sys.path.insert(0, "../")
 
 import numpy as np
+
 np.random.seed(1379)
 
 from src.clazz.profile import binary_f1_score, binary_acc_score
 from src.clazz.window_size import dominant_fourier_freq, highest_autocorrelation, suss, mwf
 from benchmark.utils import evaluate_class, evaluate_candidate
+
+
+def evaluate_sliding_window_parameter(exp_path, n_jobs, verbose):
+    name = "sliding_window"
+
+    if os.path.exists(exp_path + name):
+        shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    ds = np.arange(1_000, 20_000 + 1, 1_000)
+
+    for n_timepoints in ds:
+        candidate_name = f"{n_timepoints}-timepoints"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            "train",
+            eval_func=evaluate_class,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            n_timepoints=n_timepoints
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
 
 
 def evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose):
@@ -17,7 +47,7 @@ def evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose):
 
     os.mkdir(exp_path + name)
 
-    k_neighbours = (1,3,5,7)
+    k_neighbours = (1, 3, 5, 7)
 
     for nn in k_neighbours:
         candidate_name = f"{nn}-NN"
@@ -153,7 +183,7 @@ def evaluate_sample_size_parameter(exp_path, n_jobs, verbose):
 
     os.mkdir(exp_path + name)
 
-    sample_sizes = [None, 10, 100, 1_000, 10_000] #
+    sample_sizes = [None, 10, 100, 1_000, 10_000]  #
 
     for sample_size in sample_sizes:
         candidate_name = f"{sample_size}-sample_size"
@@ -178,9 +208,10 @@ if __name__ == '__main__':
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
 
-    evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose)
-    evaluate_score_parameter(exp_path, n_jobs, verbose)
-    evaluate_window_size_parameter(exp_path, n_jobs, verbose)
-    evaluate_similarity_parameter(exp_path, n_jobs, verbose)
-    evaluate_p_value_parameter(exp_path, n_jobs, verbose)
-    evaluate_sample_size_parameter(exp_path, n_jobs, verbose)
+    evaluate_sliding_window_parameter(exp_path, n_jobs, verbose)
+    # evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose)
+    # evaluate_score_parameter(exp_path, n_jobs, verbose)
+    # evaluate_window_size_parameter(exp_path, n_jobs, verbose)
+    # evaluate_similarity_parameter(exp_path, n_jobs, verbose)
+    # evaluate_p_value_parameter(exp_path, n_jobs, verbose)
+    # evaluate_sample_size_parameter(exp_path, n_jobs, verbose)
