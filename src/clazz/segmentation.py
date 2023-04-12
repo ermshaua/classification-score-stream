@@ -1,16 +1,14 @@
 import logging
 
 import numpy as np
-import pandas as pd
-import daproli as dp
-
-from src.clazz.profile import calc_class
-from src.clazz.knn import TimeSeriesStream
-from src.clazz.window_size import suss
-from src.clazz.profile import binary_f1_score
-from src.clazz.penalty import rank_sums_test
-
 from tqdm import tqdm
+
+from src.clazz.knn import TimeSeriesStream
+from src.clazz.penalty import rank_sums_test
+from src.clazz.profile import binary_f1_score
+from src.clazz.profile import calc_class
+from src.clazz.window_size import suss
+
 
 class ClaSS:
 

@@ -1,9 +1,8 @@
 import numpy as np
-
-from tqdm import tqdm
 from stumpy import stump
 from stumpy.floss import floss, _cac
-from src.clazz.window_size import suss
+from tqdm import tqdm
+
 
 class FLOSS:
 

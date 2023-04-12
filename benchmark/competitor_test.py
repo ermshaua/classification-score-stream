@@ -1,12 +1,13 @@
-import sys, os, shutil
+import os
+import shutil
+import sys
+
 sys.path.insert(0, "../")
 
 import numpy as np
 np.random.seed(1379)
 
-from itertools import product
-from src.clazz.profile import binary_f1_score, binary_acc_score
-from benchmark.utils import evaluate_class, evaluate_floss, evaluate_window, evaluate_candidate, evaluate_bocd, evaluate_adwin, evaluate_ddm, evaluate_hddm, evaluate_change_finder, evaluate_newma
+from benchmark.utils import evaluate_candidate, evaluate_change_finder, evaluate_newma
 
 
 def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):

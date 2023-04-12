@@ -1,8 +1,6 @@
 import numpy as np
-
-from tqdm import tqdm
 from ruptures.costs import cost_factory
-from src.clazz.window_size import suss
+from tqdm import tqdm
 
 
 class Window:

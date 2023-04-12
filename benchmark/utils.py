@@ -1,21 +1,21 @@
 import time
 
+import daproli as dp
 import numpy as np
 import pandas as pd
-import daproli as dp
-
-from src.competitor.ChangeFinder import ChangeFinder
-from src.competitor.HDDM import HDDM
-from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
-from src.clazz.segmentation import ClaSS
-from src.competitor.FLOSS import FLOSS
-from src.competitor.Window import Window
-from src.competitor.BOCD import BOCD
-from src.competitor.ADWIN import ADWIN
-from src.competitor.DDM import DDM
-from src.competitor.NEWMA import NEWMA
-from benchmark.metrics import f_measure, covering
 from tqdm import tqdm
+
+from benchmark.metrics import f_measure, covering
+from src.clazz.segmentation import ClaSS
+from src.competitor.ADWIN import ADWIN
+from src.competitor.BOCD import BOCD
+from src.competitor.ChangeFinder import ChangeFinder
+from src.competitor.DDM import DDM
+from src.competitor.FLOSS import FLOSS
+from src.competitor.HDDM import HDDM
+from src.competitor.NEWMA import NEWMA
+from src.competitor.Window import Window
+from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
 
 
 def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):

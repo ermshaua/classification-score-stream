@@ -1,8 +1,7 @@
-import numpy as np
 import daproli as dp
-import pandas as pd
-
 import matplotlib
+import numpy as np
+
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 
@@ -11,9 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_theme()
 sns.set_color_codes()
-
-from matplotlib.animation import FuncAnimation
-from tqdm import tqdm
 
 
 def plot_profile(ts_name, profile, true_cps=None, found_cps=None, show=True, score="roc_auc_score", save_path=None, font_size=26):

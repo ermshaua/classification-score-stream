@@ -1,7 +1,6 @@
 import numpy as np
-
-from tqdm import tqdm
 from bocd import BayesianOnlineChangePointDetection, ConstantHazard, StudentT
+from tqdm import tqdm
 
 
 class BOCD:

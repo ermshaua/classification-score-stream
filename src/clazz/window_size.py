@@ -1,10 +1,9 @@
+import math
+
 import numpy as np
 import pandas as pd
-
-from statsmodels.tsa.stattools import acf
 from scipy.signal import find_peaks
-
-import math
+from statsmodels.tsa.stattools import acf
 
 
 def dominant_fourier_freq(ts, min_size=10, max_size=1000): #

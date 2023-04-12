@@ -1,6 +1,5 @@
-import numpy as np
 import change_finder
-
+import numpy as np
 from tqdm import tqdm
 
 

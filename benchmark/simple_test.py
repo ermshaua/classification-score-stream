@@ -1,25 +1,16 @@
-import sys, logging, time
+import logging
+import sys
+
 sys.path.insert(0, "../")
 
 import numpy as np
-import pandas as pd
-np.random.seed(1379)
-import matplotlib.pyplot as plt
 
-from src.clazz.segmentation import ClaSS
-from src.competitor.FLOSS import FLOSS
-from src.competitor.Window import Window
-from src.competitor.BOCD import BOCD
-from src.competitor.ADWIN import ADWIN
-from src.competitor.DDM import DDM
-from src.competitor.HDDM import HDDM
-from src.competitor.PageHinkley import PageHinkley
+np.random.seed(1379)
+
 from src.competitor.NEWMA import NEWMA
-from src.competitor.ChangeFinder import ChangeFinder
 from src.utils import load_dataset
 from benchmark.metrics import covering
-from src.visualizer import plot_profile_with_ts
-from src.realtime_animation import ClaSPSegmetationStreamViewer
+from src.profile_visualization import plot_profile_with_ts
 from benchmark.utils import run_stream
 
 
@@ -33,8 +24,6 @@ if __name__ == '__main__':
 
     # df = pd.read_csv("../tmp/penguin.txt", sep="\t", header=None)
     # name, w, cps, ts = "X-Acc of Penguin Movement", None, np.array([]), df.iloc[:,0]
-
-    from src.clazz.profile import binary_acc_score
 
     # stream = ClaSS(n_timepoints=10_000, n_prerun=min(10_000, ts.shape[0]), jump=None, verbose=ts.shape[0]) #
     # stream = FLOSS(window_size=w, n_prerun=min(10_000, ts.shape[0]), verbose=ts.shape[0])

@@ -1,10 +1,12 @@
-import sys, os, shutil
+import os
+import sys
+
 sys.path.insert(0, "../")
 
 import numpy as np
 np.random.seed(1379)
 
-from benchmark.utils import evaluate_class, evaluate_floss, evaluate_candidate
+from benchmark.utils import evaluate_floss, evaluate_candidate
 
 if __name__ == '__main__':
     exp_path = "../tmp/"

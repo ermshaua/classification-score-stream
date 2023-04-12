@@ -1,6 +1,5 @@
 import numpy as np
-
-from scipy.stats import ranksums, distributions
+from scipy.stats import distributions
 
 from src.clazz.profile import _labels
 
