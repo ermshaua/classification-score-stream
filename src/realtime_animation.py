@@ -13,7 +13,7 @@ sns.set_theme()
 sns.set_color_codes()
 
 
-class ClaSPSegmetationStreamViewer:
+class ClaSSViewer:
 
     def __init__(self, ts_name, css, score="ClaSP Score", font_size=18, frame_rate=24):
         self.ts_name = ts_name
@@ -21,6 +21,8 @@ class ClaSPSegmetationStreamViewer:
         self.score = score
         self.font_size = font_size
         self.frame_rate = frame_rate
+
+        self.init_animation()
 
     def init_animation(self):
         plt.ioff()
@@ -148,6 +150,10 @@ class ClaSPSegmetationStreamViewer:
     @property
     def change_points(self):
         return self.css.change_points
+
+    @property
+    def scores(self):
+        return self.css.scores
 
 
 class ClaSSAnimator:
