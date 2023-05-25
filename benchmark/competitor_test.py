@@ -7,7 +7,7 @@ sys.path.insert(0, "../")
 import numpy as np
 np.random.seed(1379)
 
-from benchmark.utils import evaluate_candidate, evaluate_change_finder, evaluate_newma
+from benchmark.utils import evaluate_candidate, evaluate_change_finder, evaluate_newma, evaluate_mmdew
 
 
 def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
@@ -26,8 +26,9 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
         #("ADWIN", evaluate_adwin),
         #("DDM", evaluate_ddm),
         #("HDDM", evaluate_hddm),
-        ("ChangeFinder", evaluate_change_finder),
-        ("NEWMA", evaluate_newma)
+        # ("ChangeFinder", evaluate_change_finder),
+        # ("NEWMA", evaluate_newma)
+        ("MMDEW", evaluate_mmdew)
     ]
 
     for candidate_name, eval_func in competitors:
@@ -54,9 +55,9 @@ if __name__ == '__main__':
     evaluate_competitor_dataset("UTSA", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("TSSB", exp_path, n_jobs, verbose)
 
-    evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
-    evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
+    # evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)

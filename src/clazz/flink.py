@@ -45,4 +45,5 @@ class ClaSSProcessWindowFunction(ProcessWindowFunction):
             yield self.last_cp
 
     def close(self):
-        self.stream = None
+        # self.stream = None
+        pass
