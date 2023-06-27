@@ -37,15 +37,15 @@
   <body class="flexbody">
     
 <nav class="navbar navbar-expand-md navbar-dark bg-dark d-flex justify-content-between" id="mainNav">
-	<label for="navicon" class="navbar-icon">&#9776;</label>
-	<input type="checkbox" id="navicon" class="navbar-check">
+    <label for="navicon" class="navbar-icon">&#9776;</label>
+    <input type="checkbox" id="navicon" class="navbar-check">
 
-	<a id="nav_home" class="navbar-brand" href="/">
-		PhysioNet
-	</a>
+    <a id="nav_home" class="navbar-brand" href="/">
+        PhysioNet
+    </a>
 
-	<div class="collapse navbar-collapse" id="navbarCollapse">
-		
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+
 
 
 
@@ -108,16 +108,16 @@
   </li>
 </ul>
 
-	</div>
+    </div>
 
-	<div class="navbar-search">
-		<form class="form-inline" action="/content/">
-	    	<input name="topic" class="search-input" type="text" placeholder="Search">
-		    <span class="input-group-btn">
-		      <button id="search-button" type="submit" class="btn-search my-2 my-sm-0" title="Search PhysioNet"><span class="fa fa-search"><span class="visually-hidden">Search PhysioNet</span></span></button>
-		    </span>
-	 	</form>
-	</div>
+    <div class="navbar-search">
+        <form class="form-inline" action="/content/">
+            <input name="topic" class="search-input" type="text" placeholder="Search">
+            <span class="input-group-btn">
+              <button id="search-button" type="submit" class="btn-search my-2 my-sm-0" title="Search PhysioNet"><span class="fa fa-search"><span class="visually-hidden">Search PhysioNet</span></span></button>
+            </span>
+        </form>
+    </div>
 </nav>
 
 

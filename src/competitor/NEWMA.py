@@ -11,7 +11,7 @@ class NEWMA:
         self.excl_factor = excl_factor
         self.verbose = verbose
 
-        self.newma = algos.NEWMA(np.zeros(excl_factor*window_size), thresholding_quantile=thresholding_quantile)
+        self.newma = algos.NEWMA(np.zeros(excl_factor * window_size), thresholding_quantile=thresholding_quantile)
 
         self.profile = np.full(shape=self.n_timepoints, fill_value=np.inf, dtype=np.float64)
         self.change_points = []

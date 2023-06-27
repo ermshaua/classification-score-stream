@@ -1,4 +1,5 @@
 import os
+
 ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
@@ -67,6 +68,7 @@ def load_benchmark_dataset():
     df.reset_index(drop=True, inplace=True)
     return df
 
+
 def load_archives_dataset():
     df = pd.concat([
         load_dataset("PAMAP"),
@@ -79,6 +81,7 @@ def load_archives_dataset():
     df.sort_values(by="name", inplace=True)
     df.reset_index(drop=True, inplace=True)
     return df
+
 
 def load_combined_dataset():
     df = pd.concat([

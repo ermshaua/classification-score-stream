@@ -52,7 +52,6 @@ class ClaSS:
         self.lag = -1
         self.prerun_counter = 0
 
-
     def prerun(self, timepoint):
         # update prerun ts
         self.prerun_counter += 1
@@ -69,7 +68,7 @@ class ClaSS:
 
         # determine jump size
         if self.jump is None:
-            self.jump = int(self.window_size/2)
+            self.jump = int(self.window_size / 2)
 
         if self.verbose > 0:
             logging.info(f"Using window size: {self.window_size}")
@@ -137,7 +136,7 @@ class ClaSS:
         elif self.profile_mode == "local":
             self.profile[profile_start:profile_end] = profile
 
-        p, passed = rank_sums_test(knn, cp, self.window_size, sample_size=self.sample_size, threshold=self.p_value) #
+        p, passed = rank_sums_test(knn, cp, self.window_size, sample_size=self.sample_size, threshold=self.p_value)  #
 
         if passed:
             global_cp = self.ingested - self.ts_stream_lag - (profile_end - profile_start) + cp
@@ -154,5 +153,3 @@ class ClaSS:
             return self.prerun(timepoint)
 
         return self.run(timepoint)
-
-

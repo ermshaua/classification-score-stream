@@ -6,7 +6,7 @@ from scipy.signal import find_peaks
 from statsmodels.tsa.stattools import acf
 
 
-def dominant_fourier_freq(ts, min_size=10, max_size=1000): #
+def dominant_fourier_freq(ts, min_size=10, max_size=1000):  #
     fourier = np.fft.fft(ts)
     freq = np.fft.fftfreq(ts.shape[0], 1)
 
@@ -26,7 +26,7 @@ def dominant_fourier_freq(ts, min_size=10, max_size=1000): #
 
 
 def highest_autocorrelation(ts, min_size=10, max_size=1000):
-    acf_values = acf(ts, fft=True, nlags=int(ts.shape[0]/2))
+    acf_values = acf(ts, fft=True, nlags=int(ts.shape[0] / 2))
 
     peaks, _ = find_peaks(acf_values)
     peaks = peaks[np.logical_and(peaks >= min_size, peaks < max_size)]
@@ -68,7 +68,7 @@ def suss(time_series, lbound=10, threshold=.89):
     stats = (ts_mean, ts_std, ts_min_max)
 
     max_score = suss_score(time_series, 1, stats)
-    min_score = suss_score(time_series, time_series.shape[0]-1, stats)
+    min_score = suss_score(time_series, time_series.shape[0] - 1, stats)
 
     exp = 0
 
@@ -95,13 +95,13 @@ def suss(time_series, lbound=10, threshold=.89):
         score = 1 - (suss_score(time_series, window_size, stats) - min_score) / (max_score - min_score)
 
         if score < threshold:
-            lbound = window_size+1
+            lbound = window_size + 1
         elif score > threshold:
-            ubound = window_size-1
+            ubound = window_size - 1
         else:
             break
 
-    return 2*lbound
+    return 2 * lbound
 
 
 def moving_mean(ts, w):

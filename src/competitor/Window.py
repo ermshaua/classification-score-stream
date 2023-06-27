@@ -7,7 +7,7 @@ class Window:
 
     def __init__(self, n_timepoints=10_000, window_size=None, cost_func="ar", threshold=0.2, excl_factor=5, verbose=0):
         self.n_timepoints = n_timepoints
-        self.window_size = excl_factor*window_size
+        self.window_size = excl_factor * window_size
         self.cost_func = cost_factory(model=cost_func)
         self.threshold = threshold
         self.excl_factor = excl_factor
@@ -41,15 +41,15 @@ class Window:
         self.sliding_window = np.roll(self.sliding_window, -1)
         self.sliding_window[-1] = timepoint
 
-        if self.ingested < 2*self.window_size:
+        if self.ingested < 2 * self.window_size:
             return self.profile
 
         self.profile = np.roll(self.profile, -1)
         self.profile[-1] = -np.inf
 
-        self.cost_func.fit(self.sliding_window[self.n_timepoints-2*self.window_size:])
+        self.cost_func.fit(self.sliding_window[self.n_timepoints - 2 * self.window_size:])
 
-        start, middle, end = 0, self.window_size, 2*self.window_size
+        start, middle, end = 0, self.window_size, 2 * self.window_size
         cost_all = self.cost_func.error(start, end) / self.window_size
 
         idx = self.n_timepoints - self.window_size

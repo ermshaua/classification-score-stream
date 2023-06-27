@@ -77,7 +77,8 @@ class FLOSS:
             cp = np.argmin(profile)
             self.change_points.append(cp)
             self.scores.append(profile[cp])
-            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0], cp + self.excl_factor * self.window_size)] = np.inf
+            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0],
+                                                                         cp + self.excl_factor * self.window_size)] = np.inf
 
         return self.profile
 
@@ -105,7 +106,8 @@ class FLOSS:
                 self.change_points.append(global_pos)
                 self.scores.append(profile[cp])
 
-            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0], cp + self.excl_factor * self.window_size)] = np.inf
+            profile[max(0, cp - self.excl_factor * self.window_size):min(profile.shape[0],
+                                                                         cp + self.excl_factor * self.window_size)] = np.inf
 
         return self.profile
 

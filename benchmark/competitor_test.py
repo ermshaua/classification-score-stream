@@ -5,9 +5,11 @@ import sys
 sys.path.insert(0, "../")
 
 import numpy as np
+
 np.random.seed(1379)
 
-from benchmark.utils import evaluate_candidate, evaluate_change_finder, evaluate_newma, evaluate_mmdew
+from benchmark.utils import evaluate_candidate, evaluate_class, evaluate_floss, evaluate_window, evaluate_adwin, \
+    evaluate_ddm, evaluate_hddm, evaluate_change_finder, evaluate_newma, evaluate_bocd
 
 
 def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
@@ -19,16 +21,15 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
     os.mkdir(exp_path + name)
 
     competitors = [
-        # ("ClaSS", evaluate_class),
-        # ("FLOSS", evaluate_floss),
-        # ("Window", evaluate_window),
-        # ("BOCD", evaluate_bocd)
-        #("ADWIN", evaluate_adwin),
-        #("DDM", evaluate_ddm),
-        #("HDDM", evaluate_hddm),
-        # ("ChangeFinder", evaluate_change_finder),
-        # ("NEWMA", evaluate_newma)
-        ("MMDEW", evaluate_mmdew)
+        ("ClaSS", evaluate_class),
+        ("FLOSS", evaluate_floss),
+        ("Window", evaluate_window),
+        ("BOCD", evaluate_bocd),
+        ("ADWIN", evaluate_adwin),
+        ("DDM", evaluate_ddm),
+        ("HDDM", evaluate_hddm),
+        ("ChangeFinder", evaluate_change_finder),
+        ("NEWMA", evaluate_newma)
     ]
 
     for candidate_name, eval_func in competitors:
@@ -47,7 +48,7 @@ def evaluate_competitor_dataset(dataset_name, exp_path, n_jobs, verbose):
 
 if __name__ == '__main__':
     exp_path = "../experiments/"
-    n_jobs, verbose = 10, 0
+    n_jobs, verbose = -1, 0
 
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
@@ -55,9 +56,9 @@ if __name__ == '__main__':
     evaluate_competitor_dataset("UTSA", exp_path, n_jobs, verbose)
     evaluate_competitor_dataset("TSSB", exp_path, n_jobs, verbose)
 
-    # evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
-    # evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("PAMAP", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("mHealth", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("WESAD", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("MIT-BIH-VE", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("MIT-BIH-Arr", exp_path, n_jobs, verbose)
+    evaluate_competitor_dataset("SleepDB", exp_path, n_jobs, verbose)

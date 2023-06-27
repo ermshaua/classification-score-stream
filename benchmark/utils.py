@@ -13,7 +13,6 @@ from src.competitor.ChangeFinder import ChangeFinder
 from src.competitor.DDM import DDM
 from src.competitor.FLOSS import FLOSS
 from src.competitor.HDDM import HDDM
-from src.competitor.MMDEW import MMDEW
 from src.competitor.NEWMA import NEWMA
 from src.competitor.Window import Window
 from src.utils import load_dataset, load_train_dataset, load_benchmark_dataset
@@ -34,9 +33,9 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
         if window_profile.shape[0] > profile.shape[0]:
             window_profile = window_profile[-profile.shape[0]:]
 
-        profile[max(0, dx-window_profile.shape[0]+1):dx+1] = aggregate_profile([
-            profile[max(0, dx-window_profile.shape[0]+1):dx+1],
-            window_profile[max(0, window_profile.shape[0]-dx-1):]
+        profile[max(0, dx - window_profile.shape[0] + 1):dx + 1] = aggregate_profile([
+            profile[max(0, dx - window_profile.shape[0] + 1):dx + 1],
+            window_profile[max(0, window_profile.shape[0] - dx - 1):]
         ], axis=0)
 
         # store runtime
@@ -48,7 +47,8 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
             found_cps_dx.append(dx)
 
     if profile.shape[0] < ts.shape[0]:
-        profile = np.hstack((np.full(shape=ts.shape[0]-profile.shape[0], fill_value=np.min(profile), dtype=np.float64), profile))
+        profile = np.hstack(
+            (np.full(shape=ts.shape[0] - profile.shape[0], fill_value=np.min(profile), dtype=np.float64), profile))
 
     if interpolate_profile is True:
         profile[np.isinf(profile)] = np.nan
@@ -169,17 +169,6 @@ def evaluate_newma(name, w, cps, ts, **seg_kwargs):
     return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
 
 
-def evaluate_mmdew(name, w, cps, ts, **seg_kwargs):
-    stream = MMDEW(verbose=0, **seg_kwargs)
-    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts)
-
-    f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
-    covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
-
-    # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
-    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
-
-
 def evaluate_candidate(candidate_name, dataset_name, eval_func, columns=None, n_jobs=1, verbose=0, **seg_kwargs):
     if dataset_name == "train":
         df_data = load_train_dataset()
@@ -190,14 +179,15 @@ def evaluate_candidate(candidate_name, dataset_name, eval_func, columns=None, n_
 
     df_res = dp.map(
         lambda _, args: eval_func(*args, **seg_kwargs),
-        tqdm(list(df_data.iterrows()), disable=verbose<1),
+        tqdm(list(df_data.iterrows()), disable=verbose < 1),
         ret_type=list,
         verbose=0,
         n_jobs=n_jobs,
     )
 
     if columns is None:
-        columns = ["dataset", "true_cps", "found_cps", "found_cps_dx", "f1_score", "covering_score", "profile", "runtimes"]
+        columns = ["dataset", "true_cps", "found_cps", "found_cps_dx", "f1_score", "covering_score", "profile",
+                   "runtimes"]
 
     df_res = pd.DataFrame.from_records(
         df_res,

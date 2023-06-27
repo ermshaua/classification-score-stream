@@ -10,14 +10,14 @@ def _rolling_knn(dists, knns, dist, knn, knn_insert_idx, knn_fill, l, k_neighbou
     knns[knn_insert_idx, :] = knn
 
     idx = np.arange(lbound, l)
-    change_mask = np.full(shape=l-lbound, fill_value=True, dtype=np.bool_)
+    change_mask = np.full(shape=l - lbound, fill_value=True, dtype=np.bool_)
 
     for kdx in range(k_neighbours - 1):
         change_idx = dist[idx] < dists[idx, kdx]
-        change_idx = np.logical_and(change_idx, change_mask[idx-lbound]) #
+        change_idx = np.logical_and(change_idx, change_mask[idx - lbound])  #
         change_idx = idx[change_idx]
 
-        change_mask[change_idx-lbound] = False #
+        change_mask[change_idx - lbound] = False  #
         knns[change_idx, kdx + 1:] = knns[change_idx, kdx:k_neighbours - 1]
         knns[change_idx, kdx] = knn_insert_idx
 
@@ -40,7 +40,7 @@ def _knn(knn_insert_idx, l, fill,
          csumsq, dcsum, exclusion_radius, k_neighbours, lbound):
     idx = knn_insert_idx
 
-    start_idx = lbound-1  # l - (fill - window_size + 1)
+    start_idx = lbound - 1  # l - (fill - window_size + 1)
     valid_dist = slice(start_idx, l)
     dist = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
 
@@ -277,8 +277,8 @@ class TimeSeriesStream:
         if self.knn_fill > 0:
             self.dists = _roll_numba(self.dists, -1,
                                      np.full(shape=self.dists.shape[1],
-                                            fill_value=np.inf,
-                                            dtype=np.float64))
+                                             fill_value=np.inf,
+                                             dtype=np.float64))
 
             self.knns = _roll_numba(self.knns, -1)
             self.knns[self.knn_insert_idx - self.knn_fill:self.knn_insert_idx] -= 1

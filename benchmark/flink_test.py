@@ -1,33 +1,21 @@
 import logging
-import os
+import resource
 import sys
 import time
-import psutil
-from claspy.data_loader import load_tssb_dataset
-from pyflink.datastream.connectors.file_system import FileSink
+
+sys.path.insert(0, "../")
+
+from pyflink.common.watermark_strategy import TimestampAssigner
 
 from src.clazz.flink import ClaSSProcessWindowFunction
 from src.utils import load_dataset
-
-sys.path.insert(0, "../")
 
 import numpy as np
 
 np.random.seed(1379)
 
 from pyflink.common.typeinfo import Types
-from pyflink.datastream import StreamExecutionEnvironment, SinkFunction
-from pyflink.datastream.window import CountSlidingWindowAssigner
-
-
-class ListSink(SinkFunction):
-
-    def __init__(self):
-        super().__init__("CollectSink")
-        self.result_array = []
-
-    def invoke(self, value):
-        self.result_array.append(value)
+from pyflink.datastream import StreamExecutionEnvironment, TimeCharacteristic, ProcessWindowFunction
 
 
 if __name__ == '__main__':
@@ -40,6 +28,7 @@ if __name__ == '__main__':
 
     # Set up the environment
     env = StreamExecutionEnvironment.get_execution_environment()
+    env.set_stream_time_characteristic(TimeCharacteristic.ProcessingTime)
     env.set_parallelism(1)
 
     # Read the input data stream
@@ -50,7 +39,7 @@ if __name__ == '__main__':
     # Apply the ClaSSProcessWindowFunction
     output_stream = input_stream \
         .key_by(lambda x: 0) \
-        .window(CountSlidingWindowAssigner.of(1, 1)) \
+        .count_window(10) \
         .process(window_function, output_type=Types.INT())
 
     # Write the output data stream
@@ -58,14 +47,17 @@ if __name__ == '__main__':
 
     # Before execution
     start_time = time.time()
-    memory_usage_before = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2  # In MB
+    memory_usage_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024  # In MB
 
     # Execute the job
     env.execute("Simple ClaSS Flink Test")
 
     # After execution
     end_time = time.time()
-    memory_usage_after = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2  # In MB
+    memory_usage_after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024  # In MB
 
-    print(f"Execution time: {end_time - start_time} seconds")
-    print(f"Memory used: {memory_usage_after - memory_usage_before} MB")
+    runtime = end_time - start_time
+    memory = memory_usage_after - memory_usage_before
+
+    print(f"Throughput: {np.round(len(ts) / runtime, 2)} data/second")
+    print(f"Memory used: {np.round(memory_usage_after - memory_usage_before, 2)} MB")

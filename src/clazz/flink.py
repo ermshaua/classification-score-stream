@@ -37,13 +37,12 @@ class ClaSSProcessWindowFunction(ProcessWindowFunction):
         )
 
     def process(self, key, context, elements):
-        timepoint = next(iter(elements))
-        self.stream.update(timepoint)
+        for timepoint in elements:
+            self.stream.update(timepoint)
 
-        if len(self.stream.change_points) > 0 and self.stream.change_points[-1] != self.last_cp:
-            self.last_cp = self.stream.change_points[-1]
-            yield self.last_cp
+            if len(self.stream.change_points) > 0 and self.stream.change_points[-1] != self.last_cp:
+                self.last_cp = self.stream.change_points[-1]
+                yield self.last_cp
 
     def close(self):
-        # self.stream = None
-        pass
+        self.stream = None

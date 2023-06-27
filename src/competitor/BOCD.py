@@ -6,7 +6,7 @@ from tqdm import tqdm
 class BOCD:
 
     def __init__(self, n_timepoints=10_000, threshold=-150, excl_factor=5, verbose=0):
-        self.n_timepoints =  n_timepoints
+        self.n_timepoints = n_timepoints
         self.threshold = threshold
         self.excl_factor = excl_factor
         self.verbose = verbose

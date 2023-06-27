@@ -203,15 +203,15 @@ def evaluate_sample_size_parameter(exp_path, n_jobs, verbose):
 
 if __name__ == '__main__':
     exp_path = "../experiments/"
-    n_jobs, verbose = 60, 0
+    n_jobs, verbose = -1, 0
 
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
 
     evaluate_sliding_window_parameter(exp_path, n_jobs, verbose)
-    # evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose)
-    # evaluate_score_parameter(exp_path, n_jobs, verbose)
-    # evaluate_window_size_parameter(exp_path, n_jobs, verbose)
-    # evaluate_similarity_parameter(exp_path, n_jobs, verbose)
-    # evaluate_p_value_parameter(exp_path, n_jobs, verbose)
-    # evaluate_sample_size_parameter(exp_path, n_jobs, verbose)
+    evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose)
+    evaluate_score_parameter(exp_path, n_jobs, verbose)
+    evaluate_window_size_parameter(exp_path, n_jobs, verbose)
+    evaluate_similarity_parameter(exp_path, n_jobs, verbose)
+    evaluate_p_value_parameter(exp_path, n_jobs, verbose)
+    evaluate_sample_size_parameter(exp_path, n_jobs, verbose)

@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, "../")
 
 import numpy as np
+
 np.random.seed(1379)
 
 from itertools import product
@@ -75,7 +76,7 @@ def evaluate_bocd_threshold(exp_path, n_jobs, verbose):
 
     os.mkdir(exp_path + name)
 
-    thresholds = -np.arange(50,500+1,50)
+    thresholds = -np.arange(50, 500 + 1, 50)
 
     for t in thresholds:
         candidate_name = f"{t}-threshold"
@@ -127,7 +128,7 @@ def evaluate_ddm_out_control(exp_path, n_jobs, verbose):
 
     os.mkdir(exp_path + name)
 
-    out_control_levels = list(range(1,30+1))
+    out_control_levels = list(range(1, 30 + 1))
 
     for o in out_control_levels:
         candidate_name = f"{o}-out_control_level"
@@ -179,7 +180,7 @@ def evaluate_change_finder_threshold(exp_path, n_jobs, verbose):
 
     os.mkdir(exp_path + name)
 
-    thresholds = list(range(10,100+1,10))
+    thresholds = list(range(10, 100 + 1, 10))
 
     for t in thresholds:
         candidate_name = f"{t}-threshold"
@@ -225,14 +226,16 @@ def evaluate_newma_thresholding_quantile(exp_path, n_jobs, verbose):
 
 if __name__ == '__main__':
     exp_path = "../experiments/"
-    n_jobs, verbose = 60, 0
+    n_jobs, verbose = -1, 0
 
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)
 
-    # evaluate_floss_threshold(exp_path, n_jobs, verbose)
-    # evaluate_window_cost_threshold(exp_path, n_jobs, verbose)
-    # evaluate_bocd_threshold(exp_path, n_jobs, verbose)
+    evaluate_floss_threshold(exp_path, n_jobs, verbose)
+    evaluate_window_cost_threshold(exp_path, n_jobs, verbose)
+    evaluate_bocd_threshold(exp_path, n_jobs, verbose)
+    evaluate_adwin_delta(exp_path, n_jobs, verbose)
+    evaluate_ddm_out_control(exp_path, n_jobs, verbose)
+    evaluate_hddm_drift_confidence(exp_path, n_jobs, verbose)
+    evaluate_change_finder_threshold(exp_path, n_jobs, verbose)
     evaluate_newma_thresholding_quantile(exp_path, n_jobs, verbose)
-
-

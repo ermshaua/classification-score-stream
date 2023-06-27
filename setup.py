@@ -12,7 +12,7 @@ pyproject = toml.load("pyproject.toml")
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
-    
+
 """Set up package."""
 setup(
     author_email=pyproject["project"]["authors"][0]["email"],
