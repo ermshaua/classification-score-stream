@@ -10,7 +10,7 @@ np.random.seed(1379)
 from src.clazz.segmentation import ClaSS
 from src.utils import load_dataset
 from benchmark.metrics import covering
-from src.realtime_animation import ClaSSAnimator
+from src.profile_animation import ClaSSAnimator
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

@@ -6,7 +6,7 @@ from scipy.signal import find_peaks
 from statsmodels.tsa.stattools import acf
 
 
-def dominant_fourier_freq(ts, min_size=10, max_size=1000):  #
+def dominant_fourier_freq(ts, min_size=10, max_size=1000):
     fourier = np.fft.fft(ts)
     freq = np.fft.fftfreq(ts.shape[0], 1)
 

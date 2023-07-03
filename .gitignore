@@ -26,6 +26,7 @@ __pycache__
 tmp/
 deploy.sh
 archives/
+Reviews/
 
 
 # Byte-compiled / optimized / DLL files

@@ -13,7 +13,7 @@ sns.set_theme()
 sns.set_color_codes()
 
 
-def plot_profile(ts_name, profile, true_cps=None, found_cps=None, show=True, score="roc_auc_score", save_path=None,
+def plot_profile(ts_name, profile, true_cps=None, found_cps=None, show=True, score="Score", save_path=None,
                  font_size=26):
     plt.clf()
     fig, ax = plt.subplots(1, figsize=(20, 5))

@@ -57,7 +57,7 @@ def _knn(knn_insert_idx, l, fill,
     rolled_dist = None
 
     # z-normed ed is squared
-    # (we are actually using z-normed ED instead of pearson, which is the same)
+    # (we are actually using z-normed ED instead of pearson, which is equivalent)
     if similarity == "pearson":
         rolled_dist = 2 * window_size * (1 - (
                 dot_rolled - window_size * means * means[
@@ -202,7 +202,6 @@ def _argkmin(dist, k, lbound):
         vals[idx] = min_val
 
         dist[min_arg] = np.inf
-        # dist[max(0, min_arg - excl_radius):min(min_arg + excl_radius, dist.shape[0]-1)] = np.inf
 
     dist[args] = vals
     return args
