@@ -25,6 +25,10 @@ __pycache__
 .DS_Store
 tmp/
 deploy.sh
+datasets/mHealth
+datasets/PAMAP
+datasets/TSSB
+datasets/UTSA
 archives/
 Reviews/
 
