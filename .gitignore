@@ -29,6 +29,10 @@ datasets/mHealth
 datasets/PAMAP
 datasets/TSSB
 datasets/UTSA
+datasets/MIT-BIH-Arr
+datasets/MIT-BIH-VE
+datasets/SleepDB
+datasets/WESAD
 archives/
 Reviews/
 
