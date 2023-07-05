@@ -4,11 +4,6 @@ This is the supporting website for the paper "Raising the ClaSS of Streaming Tim
 
 Ubiquitous sensors today emit high frequency streams of numerical measurements that reflect properties of human, animal, industrial, commercial, and natural processes. Shifts in such processes, e.g. caused by external events or internal state changes, manifest as changes in the recorded signals. The task of streaming time series segmentation (STSS) is to partition the stream into consecutive variable-sized segments that correspond to states of the observed processes or entities. The partition operation itself must in performance be able to cope with the input frequency of the signals. We introduce ClaSS, a novel, efficient, and highly accurate algorithm for STSS. ClaSS assesses the homogeneity of potential partitions using self-supervised time series classification and applies statistical tests to detect significant change points (CPs). In our experimental evaluation using two large benchmarks and six real-world data archives, we found ClaSS to be significantly more precise than eight state-of-the-art competitors. Its space and time complexity is independent of segment sizes and linear only in the sliding window size. We also provide ClaSS as a window operator with an average throughput of $538$ data points per second for the Apache Flink streaming engine.
 
-<video width="640" height="320" controls>
-  <source src="videos/student_commute.mp4" type="video/mp4">
-</video>
-
-
 ## Benchmark Results
 
 We have evaluated ClaSS and eight competitors on 107 benchmark and 485 data archive time series from experimental studies. The following table summarises the average Covering performance (higher is better) and the corresponding wins / ties. More details are in the paper. The raw measurements are <a target="_blank" href="https://github.com/ermshaua/classification-score-stream/blob/main/experiments">here</a> and analysis Jupyter notebooks are <a target="_blank" href="https://github.com/ermshaua/classification-score-stream/blob/main/notebooks/comparative_analysis/">here</a>.
