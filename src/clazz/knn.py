@@ -50,9 +50,11 @@ def _knn(knn_insert_idx, l, fill,
             time_series[-fill:])
     else:
         dot_rolled = dot_rolled + time_series[idx + window_size - 1] * time_series[window_size - 1:]
-        dot_rolled[start_idx] = np.dot(
-            time_series[start_idx:start_idx + window_size],
-            time_series[idx:idx + window_size])
+        # fill sliding window
+        if start_idx >= 0:
+            dot_rolled[start_idx] = np.dot(
+                time_series[start_idx:start_idx + window_size],
+                time_series[idx:idx + window_size])
 
     rolled_dist = None
 
