@@ -41,7 +41,7 @@ You can download this repository (by clicking the download button in the upper r
 
 ## Citation
 
-This paper is currently under review. After publishing, you can find the citation request here. You can find a preprint <a href="https://arxiv.org/abs/2310.20431">here</a>.
+This paper is currently under review. After publishing, you can find the citation request here. A preprint is available <a href="https://arxiv.org/abs/2310.20431">here</a>.
 
 ## Resources
 
