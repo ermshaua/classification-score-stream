@@ -1,4 +1,4 @@
-import logging
+import logging, time
 
 import numpy as np
 from tqdm import tqdm
@@ -52,6 +52,10 @@ class ClaSS:
         self.lag = -1
         self.prerun_counter = 0
 
+        # component profiling
+        self.knn_update_runtime = 0
+        self.scoring_update_runtime = 0
+
     def prerun(self, timepoint):
         # update prerun ts
         self.prerun_counter += 1
@@ -87,6 +91,10 @@ class ClaSS:
         return self.profile
 
     def run(self, timepoint):
+        # reset component profiling
+        self.knn_update_runtime = 0
+        self.scoring_update_runtime = 0
+
         # log p_bar if verbose > 0
         if self.p_bar is not None: self.p_bar.update(1)
 
@@ -98,7 +106,9 @@ class ClaSS:
 
         # update time series stream (and knn)
         self.ts_stream.lbound = self.ts_stream.knn_insert_idx - self.ts_stream.knn_fill + 1 + self.last_cp
+        runtime = time.process_time()
         self.ts_stream.update(timepoint)
+        self.knn_update_runtime = time.process_time() - runtime
 
         # update profile stream
         self.profile = np.roll(self.profile, -1, axis=0)
@@ -116,7 +126,9 @@ class ClaSS:
             return self.profile
 
         offset = self.min_seg_size
+        runtime = time.process_time()
         profile, knn = calc_class(self.ts_stream, self.score, offset, return_knn=True)
+        self.scoring_update_runtime = time.process_time() - runtime
 
         not_ninf = np.logical_not(profile == -np.inf)
 

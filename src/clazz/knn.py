@@ -44,12 +44,18 @@ def _knn(knn_insert_idx, l, fill,
     valid_dist = slice(start_idx, l)
     dist = np.full(shape=l, fill_value=np.inf, dtype=np.float64)
 
+    # naive calculation O(w*n)
+    # ts = time_series[-fill:]
+    # W = np.array([ts[idx:idx+window_size] for idx in range(len(ts)-window_size+1)])
+
     if first:
-        dot_rolled[valid_dist] = _sliding_dot(
-            time_series[idx:idx + window_size],
-            time_series[-fill:])
+        dot_rolled[valid_dist] = _sliding_dot(time_series[idx:idx + window_size], time_series[-fill:])
+        # dot_rolled[valid_dist] = np.dot(time_series[idx:idx + window_size], W.T)
     else:
         dot_rolled = dot_rolled + time_series[idx + window_size - 1] * time_series[window_size - 1:]
+        # dot_rolled[-fill+window_size-1:] = _sliding_dot(time_series[idx:idx + window_size], time_series[-fill:])
+        # dot_rolled[-fill+window_size-1:] = np.dot(time_series[idx:idx + window_size], W.T)
+
         # fill sliding window
         if start_idx >= 0:
             dot_rolled[start_idx] = np.dot(

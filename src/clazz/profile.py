@@ -225,6 +225,10 @@ def calc_class(ts_stream, score, offset, return_knn=False, interpolate=False):
 
     profile = _fast_profile(knn, ts_stream.window_size, score, offset)
 
+    # old profile calculation
+    # profile = np.full(shape=knn.shape[0], fill_value=-np.inf, dtype=np.float64)
+    # profile[offset:knn.shape[0] - offset] = _profile(knn, offset, knn.shape[0] - offset, ts_stream.window_size, f1_score)
+
     if interpolate is True:
         profile[np.isinf(profile)] = np.nan
         profile = pd.Series(profile).interpolate(limit_direction="both").to_numpy()

@@ -17,26 +17,28 @@ def evaluate_sliding_window_parameter(exp_path, n_jobs, verbose):
     name = "sliding_window"
 
     if os.path.exists(exp_path + name):
-        shutil.rmtree(exp_path + name)
+       shutil.rmtree(exp_path + name)
 
     os.mkdir(exp_path + name)
 
     ds = np.arange(1_000, 20_000 + 1, 1_000)
+    datasets = ["train"] # "UTSA", "TSSB", "PAMAP", "mHealth", "WESAD", "MIT-BIH-VE", "MIT-BIH-Arr", "SleepDB"
 
-    for n_timepoints in ds:
-        candidate_name = f"{n_timepoints}-timepoints"
-        print(f"Evaluating parameter candidate: {candidate_name}")
+    for dataset in datasets:
+        for n_timepoints in ds:
+            candidate_name = f"{n_timepoints}-timepoints"
+            print(f"Evaluating parameter candidate: {candidate_name}")
 
-        df = evaluate_candidate(
-            candidate_name,
-            "train",
-            eval_func=evaluate_class,
-            n_jobs=n_jobs,
-            verbose=verbose,
-            n_timepoints=n_timepoints
-        )
+            df = evaluate_candidate(
+                candidate_name,
+                dataset,
+                eval_func=evaluate_class,
+                n_jobs=n_jobs,
+                verbose=verbose,
+                n_timepoints=n_timepoints
+            )
 
-        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+            df.to_csv(f"{exp_path}{name}/{dataset}_{candidate_name}.csv")
 
 
 def evaluate_k_neighbours_parameter(exp_path, n_jobs, verbose):
@@ -201,6 +203,33 @@ def evaluate_sample_size_parameter(exp_path, n_jobs, verbose):
         df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
 
 
+# change components in ClaSS to run this method
+def evaluate_different_components(exp_path, n_jobs, verbose):
+    name = "components"
+
+    if os.path.exists(exp_path + name):
+      shutil.rmtree(exp_path + name)
+
+    os.mkdir(exp_path + name)
+
+    datasets = ["train", "UTSA", "TSSB", "PAMAP", "mHealth", "WESAD", "MIT-BIH-VE", "MIT-BIH-Arr", "SleepDB"] #
+
+    for dataset in datasets:
+        candidate_name = f"{dataset}-scoring-clasp"
+        print(f"Evaluating parameter candidate: {candidate_name}")
+
+        df = evaluate_candidate(
+            candidate_name,
+            dataset,
+            eval_func=evaluate_class,
+            columns=["dataset", "true_cps", "found_cps", "found_cps_dx", "f1_score", "covering_score", "profile", "runtimes", "knn_runtimes", "scoring_runtimes"],
+            n_jobs=n_jobs,
+            verbose=verbose,
+        )
+
+        df.to_csv(f"{exp_path}{name}/{candidate_name}.csv")
+
+
 if __name__ == '__main__':
     exp_path = "../experiments/"
     n_jobs, verbose = -1, 0
@@ -215,3 +244,4 @@ if __name__ == '__main__':
     evaluate_similarity_parameter(exp_path, n_jobs, verbose)
     evaluate_p_value_parameter(exp_path, n_jobs, verbose)
     evaluate_sample_size_parameter(exp_path, n_jobs, verbose)
+    # evaluate_different_components(exp_path, n_jobs, verbose)

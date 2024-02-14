@@ -24,6 +24,10 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
     runtimes = np.full(shape=ts.shape[0], fill_value=np.nan, dtype=np.float64)
     found_cps, found_cps_dx = [], []
 
+    # component profiling
+    # knn_runtimes = np.full(shape=ts.shape[0], fill_value=np.nan, dtype=np.float64)
+    # scoring_runtimes = np.full(shape=ts.shape[0], fill_value=np.nan, dtype=np.float64)
+
     for dx, timepoint in enumerate(ts):
         runtime = time.process_time()
         window_profile = stream.update(timepoint)
@@ -41,6 +45,10 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
         # store runtime
         runtimes[dx] = runtime
 
+        # store component runtimes
+        # knn_runtimes[dx] = stream.knn_update_runtime
+        # scoring_runtimes[dx] = stream.scoring_update_runtime
+
         # store CPs
         while len(stream.change_points) > len(found_cps):
             found_cps.append(stream.change_points[len(found_cps)])
@@ -54,7 +62,7 @@ def run_stream(stream, ts, aggregate_profile=np.max, interpolate_profile=True):
         profile[np.isinf(profile)] = np.nan
         profile = pd.Series(profile).interpolate(limit_direction="both").to_numpy()
 
-    return profile, np.round(runtimes, 5), found_cps, found_cps_dx
+    return profile, np.round(runtimes, 5), found_cps, found_cps_dx # np.round(knn_runtimes, 5), np.round(scoring_runtimes, 5),
 
 
 def evaluate_class(name, w, cps, ts, **seg_kwargs):
@@ -67,13 +75,13 @@ def evaluate_class(name, w, cps, ts, **seg_kwargs):
         seg_kwargs["window_size"] = w
 
     stream = ClaSS(n_prerun=n_prerun, verbose=0, **seg_kwargs)
-    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.max)
+    profile, runtimes, found_cps, found_cps_dx = run_stream(stream, ts, aggregate_profile=np.max) # knn_runtimes, scoring_runtimes,
 
     f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
     covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
 
     # print(f"{name}: Found Change Points: {found_cps}, F1-Score: {f1_score}, Covering-Score: {covering_score}")
-    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist()
+    return name, cps.tolist(), found_cps, found_cps_dx, f1_score, covering_score, profile.tolist(), runtimes.tolist() # , knn_runtimes.tolist(), scoring_runtimes.tolist()
 
 
 def evaluate_floss(name, w, cps, ts, **seg_kwargs):

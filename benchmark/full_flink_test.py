@@ -39,7 +39,7 @@ def evaluate_flink_class(name, w, cps, ts, **seg_kwargs):
     # Apply the ClaSSProcessWindowFunction
     output_stream = input_stream \
         .key_by(lambda x: 0) \
-        .count_window(10) \
+        .count_window(min(10_000, len(ts))) \
         .process(window_function, output_type=Types.INT())
 
     # Write the output data stream
@@ -55,12 +55,13 @@ def evaluate_flink_class(name, w, cps, ts, **seg_kwargs):
     # After execution
     runtime = time.process_time() - runtime
     memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - memory
+    throughput = len(ts) / runtime
 
     # f1_score = np.round(f_measure({0: cps}, found_cps, margin=int(ts.shape[0] * .01)), 3)
     # covering_score = np.round(covering({0: cps}, found_cps, ts.shape[0]), 3)
 
-    print(f"{name}: Throughput: {len(ts) / runtime}")
-    return name, runtime, memory
+    print(f"{name}: Throughput: {throughput}")
+    return name, runtime, throughput, memory
 
 
 def evaluate_flink_class_dataset(dataset_name, exp_path, n_jobs, verbose):
@@ -78,7 +79,7 @@ def evaluate_flink_class_dataset(dataset_name, exp_path, n_jobs, verbose):
         dataset_name,
         eval_func=eval_func,
         n_jobs=n_jobs,
-        columns=["dataset", "runtime", "memory"],
+        columns=["dataset", "runtime", "throughput", "memory"],
         verbose=verbose,
     )
 
